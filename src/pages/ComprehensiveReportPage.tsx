@@ -1,6 +1,6 @@
 import BudgetLine from '../components/BudgetLine';
-import FooterMenu from '../components/FooterMenu';
 import styled from 'styled-components';
+import { BottomNav } from '../components/common';
 
 const ComprehensiveReportPage = () => {
   return (
@@ -29,7 +29,7 @@ const ComprehensiveReportPage = () => {
         </WarningBox>
         <ReportBox placeholder="종합 보고서를 입력하세요." />
       </Section>
-      <FooterMenu />
+      <BottomNav />
     </Container>
   );
 };

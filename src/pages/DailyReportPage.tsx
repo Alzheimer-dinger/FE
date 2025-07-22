@@ -1,8 +1,8 @@
 import CalendarEmojis from '../components/CalendarEmojis';
 import EmotionScoreCircle from '../components/EmotionScoreCircle';
-import FooterMenu from '../components/FooterMenu';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { BottomNav } from '../components/common';
 
 const DailyReportPage = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const DailyReportPage = () => {
           오늘의 감정 평가 결과, 사용자는 전반적으로 긍정적인 기운을 유지했으며 높은 행복 지수를 보였습니다.
         </ScoreDesc>
       </Section>
-      <FooterMenu />
+      <BottomNav />
     </Container>
   );
 };
