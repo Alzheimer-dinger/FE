@@ -10,8 +10,8 @@ const DailyReportPage = () => {
     <Container>
       <Title>앱 이름</Title>
       <TabMenu>
-        <Tab active onClick={() => navigate('/daily')}>일간</Tab>
-        <Tab onClick={() => navigate('/comprehensive')}>종합</Tab>
+        <Tab active onClick={() => navigate('/report/daily')}>일간</Tab>
+        <Tab onClick={() => navigate('/report/comprehensive')}>종합</Tab>
       </TabMenu>
       <CalendarEmojis />
       <Section>

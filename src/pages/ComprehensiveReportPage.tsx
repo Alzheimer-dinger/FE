@@ -1,13 +1,15 @@
 import BudgetLine from '../components/BudgetLine';
 import styled from 'styled-components';
 import { BottomNav } from '../components/common';
+import { useNavigate } from 'react-router-dom';
 
 const ComprehensiveReportPage = () => {
+  const navigate = useNavigate();
   return (
     <Container>
       <Title>앱 이름</Title>
       <TabMenu>
-        <Tab onClick={() => window.location.href = '/daily'}>일간</Tab>
+        <Tab onClick={() => navigate('/report/daily')}>일간</Tab>
         <Tab active>종합</Tab>
       </TabMenu>
       <Section>

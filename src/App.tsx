@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   Login,
@@ -10,6 +10,8 @@ import {
   Mypage,
 } from '@pages/index';
 import { ScrollToTop } from '@components/common/index';
+import DailyReportPage from './pages/DailyReportPage';
+import ComprehensiveReportPage from './pages/ComprehensiveReportPage';
 
 const App = () => (
   <Router>
@@ -26,7 +28,10 @@ const App = () => (
         <Route path="/call" element={<Call />} />
 
         {/* Report */}
-        <Route path="/report" element={<Report />} />
+        <Route path="/report/daily" element={<DailyReportPage />} />
+        <Route path="/report/comprehensive" element={<ComprehensiveReportPage />} />
+        <Route path="/report" element={<Navigate to="/report/daily" replace />} />
+        <Route path="*" element={<Navigate to="/report/daily" replace />} />
 
         {/* MyPage */}
         <Route path="/mypage" element={<Mypage />} />
