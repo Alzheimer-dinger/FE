@@ -43,7 +43,7 @@ const CalendarEmojis = () => {
   }
 
   // State for selected day
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number | null>(today.getDate());
 
   const handleClick = (cell: any) => {
     if (cell) {
@@ -67,8 +67,8 @@ const CalendarEmojis = () => {
                 onClick={() => handleClick(cell)}
                 $selected={selectedDay === cell.day}
               >
-                <div>{cell.emoji}</div>
                 <DayNumber>{cell.day}</DayNumber>
+                <div>{cell.emoji}</div>
               </EmojiCell>
             ) : (
               <EmojiCell key={dIdx} />
@@ -105,9 +105,9 @@ const DayLabel = styled.div`
 `;
 
 const EmojiCell = styled.div<{ $selected?: boolean }>`
-  font-size: 2rem;
-  width: 32px;
-  height: 48px;
+  font-size: 1.5rem;
+  width: 36px;
+  height: 52px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -122,5 +122,5 @@ const EmojiCell = styled.div<{ $selected?: boolean }>`
 const DayNumber = styled.div`
   font-size: 0.8rem;
   color: #aaa;
-  margin-top: 2px;
+  margin-top: 0px;
 `; 

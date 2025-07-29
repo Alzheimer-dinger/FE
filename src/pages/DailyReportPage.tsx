@@ -2,13 +2,13 @@ import CalendarEmojis from '../components/CalendarEmojis';
 import EmotionScoreCircle from '../components/EmotionScoreCircle';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { BottomNav } from '../components/common';
+import { BottomNav, DefaultHeader } from '../components/common';
 
 const DailyReportPage = () => {
   const navigate = useNavigate();
   return (
     <Container>
-      <Title>앱 이름</Title>
+      <DefaultHeader showIcon={false} />
       <TabMenu>
         <Tab active onClick={() => navigate('/report/daily')}>일간</Tab>
         <Tab onClick={() => navigate('/report/comprehensive')}>종합</Tab>
@@ -36,12 +36,6 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   background: #fff;
-`;
-
-const Title = styled.h2`
-  margin-top: 24px;
-  font-size: 1.5rem;
-  color: #6c3cff;
 `;
 
 const Section = styled.section`

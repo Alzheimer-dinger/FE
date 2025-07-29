@@ -32,7 +32,7 @@ const CustomCursor = (props: any) => {
 const BudgetLine = () => {
   return (
     <Container>
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={120}>
         <LineChart data={lineData}>
           <XAxis dataKey="month" hide />
           <YAxis hide />
@@ -57,7 +57,7 @@ const Container = styled.div`
   height: 120px;
   background-color: #fcfcfc;
   border-radius: 1.5rem;
-  padding: 1rem;
+  padding: 1rem 0;
   outline: none;
   svg {
     outline: none;

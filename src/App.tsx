@@ -12,6 +12,7 @@ import {
 import { ScrollToTop } from '@components/common/index';
 import DailyReportPage from './pages/DailyReportPage';
 import ComprehensiveReportPage from './pages/ComprehensiveReportPage';
+import ProfileEditPage from './pages/ProfileEditPage';
 
 const App = () => (
   <Router>
@@ -35,6 +36,7 @@ const App = () => (
 
         {/* MyPage */}
         <Route path="/mypage" element={<Mypage />} />
+        <Route path="/mypage/edit" element={<ProfileEditPage />} />
       </Routes>
     </Container>
   </Router>
