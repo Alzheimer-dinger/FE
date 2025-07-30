@@ -8,6 +8,7 @@ import {
   Call,
   Report,
   Mypage,
+  Search,
 } from '@pages/index';
 import { ScrollToTop } from '@components/common/index';
 import { useFCM } from '@hooks/useFCM';
@@ -29,6 +30,7 @@ const App = () => {
 
           {/* Call */}
           <Route path="/call" element={<Call />} />
+          <Route path="/call-search" element={<Search />} />
 
           {/* Report */}
           <Route path="/report" element={<Report />} />

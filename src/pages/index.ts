@@ -6,6 +6,7 @@ export { default as Signup } from './init/Signup';
 
 // call
 export { default as Call } from './Call';
+export { default as Search } from './Search';
 
 // report
 export { default as Report } from './Report';

@@ -58,7 +58,7 @@ const HeaderContainer = styled.header`
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.7rem 1rem;
   background-color: '#38006B';
   border-bottom: 1.5px solid #38006b;
   box-sizing: border-box;
