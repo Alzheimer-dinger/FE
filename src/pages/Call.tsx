@@ -24,7 +24,7 @@ const Call = () => {
   const grouped = groupByMonth(callRecordData);
 
   const handleCallClick = () => {
-    navigate('/call/waiting');
+    navigate('/call-waiting');
   };
 
   return (
