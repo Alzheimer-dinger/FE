@@ -24,7 +24,7 @@ const RecordCard = ({ title, date, time }: RecordCardProps) => {
   const navigate = useNavigate();
 
   const handleNextClick = () => {
-    navigate(`/call/detail/${date}`);
+    navigate(`/call-detail/${date}`);
   };
 
   return (
