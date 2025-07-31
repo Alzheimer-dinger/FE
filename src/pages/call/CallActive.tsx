@@ -103,7 +103,7 @@ const TranscriptWrapper = styled.div`
   flex-direction: column;
   gap: 0.6rem;
   height: 350px;
-  margin: 1rem 0 2.5rem 0;
+  margin: 1rem 0 4.5rem 0;
   overflow-y: auto;
   box-sizing: border-box;
 

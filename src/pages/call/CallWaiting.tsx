@@ -88,5 +88,5 @@ const ButtonSection = styled.div`
   flex-direction: column;
   width: 100%;
   gap: 1rem;
-  padding-top: 8rem;
+  padding-top: 10rem;
 `;
