@@ -10,3 +10,4 @@ export { default as GenderButton } from './GenderButton';
 // Call
 export { default as CallBtn } from './CallBtn';
 export { default as RecordCard } from './RecordCard';
+export { default as VoiceWave } from './VoiceWave';
