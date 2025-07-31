@@ -29,7 +29,7 @@ const Call = () => {
 
   return (
     <Container>
-      <DefaultHeader />
+      <DefaultHeader showIcon={false} />
       <ContentContainer navMargin={true}>
         {grouped.map(([month, records]) => (
           <RecordList key={month}>

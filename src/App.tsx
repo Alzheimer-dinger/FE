@@ -8,7 +8,6 @@ import {
   Call,
   Report,
   Mypage,
-  Search,
   RecordDetail,
   CallWaiting,
   CallActive,
@@ -33,7 +32,6 @@ const App = () => {
 
           {/* Call */}
           <Route path="/call" element={<Call />} />
-          <Route path="/call-search" element={<Search />} />
           <Route path="/call-detail/:date" element={<RecordDetail />} />
           <Route path="/call-waiting" element={<CallWaiting />} />
           <Route path="/call-active" element={<CallActive />} />

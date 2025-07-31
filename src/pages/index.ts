@@ -6,7 +6,6 @@ export { default as Signup } from './init/Signup';
 
 // call
 export { default as Call } from './call/Call';
-export { default as Search } from './Search';
 export { default as RecordDetail } from './call/RecordDetail';
 export { default as CallWaiting } from './call/CallWaiting';
 export { default as CallActive } from './call/CallActive';
