@@ -24,6 +24,12 @@ const Mypage = () => {
   });
   const [remindTime, setRemindTime] = useState<string | null>(null);
 
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState<string>('');
+  const [feedbackReason, setFeedbackReason] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const handleProfileEditClick = () => {
     navigate('/mypage/edit');
   };
@@ -47,6 +53,50 @@ const Mypage = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleFeedbackSubmit = async () => {
+    if (!selectedRating || !feedbackReason.trim()) {
+      alert('평점과 이유를 모두 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rating: selectedRating,
+          reason: feedbackReason
+        })
+      });
+
+      if (response.ok) {
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+        setShowFeedbackModal(false);
+        setSelectedRating('');
+        setFeedbackReason('');
+      } else {
+        alert('피드백 전송에 실패했습니다.');
+      }
+    } catch (error) {
+      alert('피드백 전송에 실패했습니다.');
+    }
+  };
+
+  const handleCloseFeedbackModal = () => {
+    setShowFeedbackModal(false);
+    setSelectedRating('');
+    setFeedbackReason('');
+  };
+
+  const handleLogout = () => {
+    // 로그아웃 로직 구현
+    console.log('로그아웃 실행');
+    // 여기에 실제 로그아웃 로직 추가
   };
 
   // Picker 데이터
@@ -96,19 +146,19 @@ const Mypage = () => {
           
           <SettingItem>
             <SettingIcon style={{ background: '#e3f2fd' }}>🛡️</SettingIcon>
-            <SettingText>등록된 환자/보호자</SettingText>
+            <SettingText onClick={() => navigate('/manage')}>등록된 환자/보호자</SettingText>
             <ArrowIcon>›</ArrowIcon>
           </SettingItem>
           
           <SettingItem>
             <SettingIcon style={{ background: '#fff3e0' }}>❓</SettingIcon>
-            <SettingText>피드백 등록</SettingText>
+            <SettingText onClick={() => setShowFeedbackModal(true)}>피드백 등록</SettingText>
             <ArrowIcon>›</ArrowIcon>
           </SettingItem>
           
           <SettingItem>
             <SettingIcon style={{ background: '#e8f5e8' }}>⚙️</SettingIcon>
-            <SettingText>로그아웃</SettingText>
+            <SettingText onClick={() => setShowLogoutModal(true)}>로그아웃</SettingText>
             <ArrowIcon>›</ArrowIcon>
           </SettingItem>
         </SettingsList>
@@ -188,6 +238,48 @@ const Mypage = () => {
         </TimeModalOverlay>
       )}
       
+      {/* 피드백 등록 모달 */}
+      {showFeedbackModal && (
+        <ModalOverlay onClick={handleCloseFeedbackModal}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <ModalTitle>사용 후기를 남겨주세요!</ModalTitle>
+            <RatingContainer>
+              {[
+                { rating: 'VERY_LOW', emoji: '😡' },
+                { rating: 'LOW', emoji: '😞' },
+                { rating: 'MIDDLE', emoji: '😐' },
+                { rating: 'HIGH', emoji: '🙂' },
+                { rating: 'VERY_HIGH', emoji: '😄' }
+              ].map((item) => (
+                <RatingEmoji
+                  key={item.rating}
+                  $selected={selectedRating === item.rating}
+                  onClick={() => setSelectedRating(item.rating)}
+                >
+                  {item.emoji}
+                </RatingEmoji>
+              ))}
+            </RatingContainer>
+            <FeedbackLabel>이유를 적어주세요</FeedbackLabel>
+            <FeedbackTextarea
+              placeholder="피드백을 입력해주세요..."
+              value={feedbackReason}
+              onChange={(e) => setFeedbackReason(e.target.value)}
+            />
+            <FeedbackSubmitBtn onClick={handleFeedbackSubmit}>
+              제출
+            </FeedbackSubmitBtn>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* 토스트 메시지 */}
+      {showToast && (
+        <ToastMessage>
+          전송이 완료되었습니다.
+        </ToastMessage>
+      )}
+      
       {/* 숨겨진 파일 입력 */}
       <input
         type="file"
@@ -196,6 +288,19 @@ const Mypage = () => {
         onChange={handleFileChange}
         style={{ display: 'none' }}
       />
+
+      {/* 로그아웃 확인 모달 */}
+      {showLogoutModal && (
+        <ModalOverlay onClick={() => setShowLogoutModal(false)}>
+          <ModalContent onClick={e => e.stopPropagation()}>
+            <ModalTitle>로그아웃 하시겠습니까?</ModalTitle>
+            <LogoutButtonContainer>
+              <LogoutButton onClick={handleLogout}>네</LogoutButton>
+              <LogoutButton secondary onClick={() => setShowLogoutModal(false)}>아니오</LogoutButton>
+            </LogoutButtonContainer>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Container>
   );
 };
@@ -367,18 +472,22 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  width: 80%;
-  max-width: 300px;
-  text-align: center;
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 20px 20px 20px;
+  width: 90%;
+  max-width: 320px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const ModalTitle = styled.h2`
-  margin: 0 0 20px 0;
-  color: #333;
   font-size: 1.2rem;
+  color: #222;
+  margin-bottom: 12px;
+  text-align: center;
 `;
 
 const ModalImageContainer = styled.div`
@@ -498,3 +607,104 @@ const TimeModalButtonGray = styled.button`
 const PickerColumnWrapper = styled.div`
   margin: 0 16px;
 `;
+
+const RatingContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0;
+  gap: 4px;
+  width: 100%;
+`;
+
+const RatingEmoji = styled.div<{ $selected: boolean }>`
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  background: ${({ $selected }) => $selected ? '#f3e8fd' : 'transparent'};
+  border: 2px solid ${({ $selected }) => $selected ? '#6c3cff' : 'transparent'};
+  transition: all 0.2s;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+`;
+
+const FeedbackLabel = styled.div`
+  color: #888;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  align-self: flex-start;
+`;
+
+const FeedbackTextarea = styled.textarea`
+  width: 100%;
+  min-height: 120px;
+  max-height: 180px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-bottom: 16px;
+  
+  &:focus {
+    outline: none;
+    border-color: #6c3cff;
+  }
+`;
+
+const FeedbackSubmitBtn = styled.button`
+  width: 100%;
+  background: #6c3cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+const ToastMessage = styled.div`
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  z-index: 3000;
+`;
+
+const LogoutButtonContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+`;
+
+const LogoutButton = styled.button<{ secondary?: boolean }>`
+  flex: 1;
+  background: ${({ secondary }) => secondary ? '#f5f5f5' : '#6c3cff'};
+  color: ${({ secondary }) => secondary ? '#666' : 'white'};
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: ${({ secondary }) => secondary ? '#e0e0e0' : '#5a2fd8'};
+  }
+`;
+
+
