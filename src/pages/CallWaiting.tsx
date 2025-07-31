@@ -1,3 +1,11 @@
+/**
+ * CallWaiting - 통화 대기 화면
+ *
+ * 세부사항:
+ * - 현재 날짜(formatDate), 시간(formatTime) 표시
+ * - 통화 시작 시 /call-active로 이동
+ */
+
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Button, ContentContainer } from '@components/index';
