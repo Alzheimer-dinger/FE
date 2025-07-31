@@ -52,15 +52,14 @@ const Role = () => {
           터치하면 다음 화면으로 넘어갑니다
         </Instruction>
 
-        <FixedBottom>
-          <Button
-            type="main"
-            buttonText="다음"
-            isDisabled={!selectedRole}
-            bgColor={selectedRole ? '#6a1b9a' : '#d9d9d9'}
-            onClick={handleNext}
-          />
-        </FixedBottom>
+        <Button
+          type="main"
+          buttonText="다음"
+          isDisabled={!selectedRole}
+          bgColor={selectedRole ? '#6a1b9a' : '#d9d9d9'}
+          onClick={handleNext}
+          style={{ marginTop: '0.6rem' }}
+        />
       </ContentContainer>
     </Container>
   );
@@ -98,13 +97,4 @@ const Instruction = styled.p`
   text-align: center;
   margin-bottom: 2rem;
   line-height: 1.4;
-`;
-
-const FixedBottom = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 5rem 2rem;
-  box-sizing: border-box;
 `;
