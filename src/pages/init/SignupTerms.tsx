@@ -61,15 +61,14 @@ const SignupTerms = () => {
           onClick={() => setAgreeTerms(!agreeTerms)}
         />
 
-        <FixedBottom>
-          <Button
-            type="main"
-            buttonText="다음"
-            isDisabled={!isFormValid}
-            bgColor={isFormValid ? '#6a1b9a' : '#d9d9d9'}
-            onClick={handleNext}
-          />
-        </FixedBottom>
+        <Button
+          type="main"
+          buttonText="다음"
+          isDisabled={!isFormValid}
+          bgColor={isFormValid ? '#6a1b9a' : '#d9d9d9'}
+          onClick={handleNext}
+          style={{ marginTop: '10rem' }}
+        />
       </ContentContainer>
     </Container>
   );
@@ -109,13 +108,4 @@ const Divider = styled.div`
   height: 1px;
   background-color: #d9d9d9;
   margin-bottom: 1.5rem;
-`;
-
-const FixedBottom = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 5rem 2rem;
-  box-sizing: border-box;
 `;

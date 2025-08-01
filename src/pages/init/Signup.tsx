@@ -162,7 +162,7 @@ const Title = styled.h2`
   font-weight: bold;
   color: #6a1b9a;
   text-align: center;
-  margin: 2rem 0 0 0;
+  margin: 1rem 0 0 0;
 `;
 
 const Subtitle = styled.p`
@@ -176,7 +176,7 @@ const Form = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin: 2rem 0;
+  margin: 1rem 0 2rem 0;
 `;
 
 const Label = styled.p`

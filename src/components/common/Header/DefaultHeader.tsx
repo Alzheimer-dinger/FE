@@ -1,18 +1,24 @@
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { IoSearch } from 'react-icons/io5';
 import Logo from '@assets/logo.svg?react';
 
 interface HeaderProps {
   showIcon?: boolean;
-  onSetting?: () => void;
 }
 
-const DefaultHeader = ({ showIcon = true, onSetting }: HeaderProps) => {
+const DefaultHeader = ({ showIcon = true }: HeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleSearchClick = () => {
+    navigate('/call-search');
+  };
+
   return (
     <HeaderContainer>
       <Logo />
       {showIcon && (
-        <IconWrapper onClick={onSetting}>
+        <IconWrapper onClick={handleSearchClick}>
           <IoSearch size={24} color="#38006B" />
         </IconWrapper>
       )}

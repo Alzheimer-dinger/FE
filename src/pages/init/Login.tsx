@@ -59,7 +59,6 @@ const Login = () => {
               setEmail(e.target.value);
               setLoginError('');
             }}
-            style={{ marginBottom: '0.5rem' }}
           />
           <Label>비밀번호</Label>
           <Input
@@ -105,7 +104,7 @@ const AppTitle = styled.p`
   font-weight: bold;
   color: #6a1b9a;
   text-align: center;
-  margin: 5rem 0 0 0;
+  margin: 2rem 0 0 0;
 `;
 
 const AppSubtitle = styled.p`
@@ -119,7 +118,7 @@ const Form = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-bottom: 3rem;
+  margin-bottom: 2.6rem;
 `;
 
 const Label = styled.p`
