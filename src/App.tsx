@@ -8,12 +8,11 @@ import {
   Call,
   Report,
   Mypage,
+  ReportPage,
+  ProfileEditPage,
+  PatientGuardianManagePage,
 } from '@pages/index';
 import { ScrollToTop } from '@components/common/index';
-import DailyReportPage from './pages/DailyReportPage';
-import ComprehensiveReportPage from './pages/ComprehensiveReportPage';
-import ProfileEditPage from './pages/ProfileEditPage';
-import PatientGuardianManagePage from './pages/PatientGuardianManagePage';
 
 const App = () => (
   <Router>
@@ -30,10 +29,8 @@ const App = () => (
         <Route path="/call" element={<Call />} />
 
         {/* Report */}
-        <Route path="/report/daily" element={<DailyReportPage />} />
-        <Route path="/report/comprehensive" element={<ComprehensiveReportPage />} />
-        <Route path="/report" element={<Navigate to="/report/daily" replace />} />
-        <Route path="*" element={<Navigate to="/report/daily" replace />} />
+        <Route path="/report" element={<ReportPage />} />
+        <Route path="*" element={<Navigate to="/report" replace />} />
 
         {/* MyPage */}
         <Route path="/mypage" element={<Mypage />} />

@@ -43,13 +43,17 @@ const statusMap = {
 type StatusType = keyof typeof statusMap;
 
 const PatientGuardianManagePage = () => {
-  const [tab, setTab] = useState<'전체'|'보호자'|'환자'>('전체');
+  const [tab, setTab] = useState<'전체' | '보호자' | '환자'>('전체');
   const [showAddModal, setShowAddModal] = useState(false);
   const [addId, setAddId] = useState('');
   const [addError, setAddError] = useState('');
-  const [confirmModal, setConfirmModal] = useState<null | { type: 'disconnect' | 'reconnect', idx: number }>(null);
+  const [confirmModal, setConfirmModal] = useState<null | {
+    type: 'disconnect' | 'reconnect';
+    idx: number;
+  }>(null);
 
-  const filteredList = tab === '전체' ? dummyList : dummyList.filter(item => item.role === tab);
+  const filteredList =
+    tab === '전체' ? dummyList : dummyList.filter(item => item.role === tab);
 
   return (
     <Wrapper>
@@ -57,14 +61,20 @@ const PatientGuardianManagePage = () => {
       <Content>
         <OuterBox>
           <TabBar>
-            {['전체','보호자','환자'].map(t => (
-              <TabBtn key={t} $active={tab===t} onClick={()=>setTab(t as any)}>{t}</TabBtn>
+            {['전체', '보호자', '환자'].map(t => (
+              <TabBtn
+                key={t}
+                $active={tab === t}
+                onClick={() => setTab(t as any)}
+              >
+                {t}
+              </TabBtn>
             ))}
           </TabBar>
           <CardList>
-            {filteredList.map((item, idx) => (
+            {filteredList.map((item, idx) =>
               item.status === 'pending' ? (
-                <Card key={idx} style={{position:'relative'}}>
+                <Card key={idx} style={{ position: 'relative' }}>
                   <NBadge>N</NBadge>
                   <CardLeft>
                     <CharImg>🐥</CharImg>
@@ -95,21 +105,52 @@ const PatientGuardianManagePage = () => {
                       <Role>{item.role}</Role>
                     </NameRow>
                     <Info>ID {item.id}</Info>
-                    <Info>{item.status === 'disconnected' ? '해제 날짜' : '연결 날짜'} : {item.date}</Info>
+                    <Info>
+                      {item.status === 'disconnected'
+                        ? '해제 날짜'
+                        : '연결 날짜'}{' '}
+                      : {item.date}
+                    </Info>
                     <StatusRow>
                       <StatusLeft>
-                        <StatusBadge $status={item.status as StatusType}>{statusMap[item.status as StatusType].label}</StatusBadge>
+                        <StatusBadge $status={item.status as StatusType}>
+                          {statusMap[item.status as StatusType].label}
+                        </StatusBadge>
                       </StatusLeft>
                       <StatusRight>
-                        {item.status === 'connected' && <ActionBtn onClick={() => setConfirmModal({ type: 'disconnect', idx })}>해제</ActionBtn>}
-                        {item.status === 'requested' && <ActionBtn onClick={() => setConfirmModal({ type: 'disconnect', idx })}>해제</ActionBtn>}
-                        {item.status === 'disconnected' && <ActionBtn onClick={() => setConfirmModal({ type: 'reconnect', idx })}>재연결</ActionBtn>}
+                        {item.status === 'connected' && (
+                          <ActionBtn
+                            onClick={() =>
+                              setConfirmModal({ type: 'disconnect', idx })
+                            }
+                          >
+                            해제
+                          </ActionBtn>
+                        )}
+                        {item.status === 'requested' && (
+                          <ActionBtn
+                            onClick={() =>
+                              setConfirmModal({ type: 'disconnect', idx })
+                            }
+                          >
+                            해제
+                          </ActionBtn>
+                        )}
+                        {item.status === 'disconnected' && (
+                          <ActionBtn
+                            onClick={() =>
+                              setConfirmModal({ type: 'reconnect', idx })
+                            }
+                          >
+                            재연결
+                          </ActionBtn>
+                        )}
                       </StatusRight>
                     </StatusRow>
                   </CardBody>
                 </Card>
-              )
-            ))}
+              ),
+            )}
           </CardList>
         </OuterBox>
         <FloatingBtn onClick={() => setShowAddModal(true)}>＋</FloatingBtn>
@@ -120,7 +161,11 @@ const PatientGuardianManagePage = () => {
           <ModalContent onClick={e => e.stopPropagation()}>
             <ModalTitle>환자 추가</ModalTitle>
             <InputBox $error={!!addError}>
-              <IoPersonOutline size={28} color={addError ? '#e53935' : '#bbb'} style={{marginRight: 8}} />
+              <IoPersonOutline
+                size={28}
+                color={addError ? '#e53935' : '#bbb'}
+                style={{ marginRight: 8 }}
+              />
               <AddInput
                 placeholder="환자 ID를 입력하세요"
                 value={addId}
@@ -131,16 +176,20 @@ const PatientGuardianManagePage = () => {
               />
             </InputBox>
             {addError && <ErrorMsg>{addError}</ErrorMsg>}
-            <AddBtn onClick={() => {
-              // 예시: 8자리 숫자만 유효
-              if (!/^\d{8}$/.test(addId)) {
-                setAddError('유효하지 않은 ID입니다.');
-                return;
-              }
-              setShowAddModal(false);
-              setAddId('');
-              setAddError('');
-            }}>추가하기</AddBtn>
+            <AddBtn
+              onClick={() => {
+                // 예시: 8자리 숫자만 유효
+                if (!/^\d{8}$/.test(addId)) {
+                  setAddError('유효하지 않은 ID입니다.');
+                  return;
+                }
+                setShowAddModal(false);
+                setAddId('');
+                setAddError('');
+              }}
+            >
+              추가하기
+            </AddBtn>
           </ModalContent>
         </ModalOverlay>
       )}
@@ -148,15 +197,23 @@ const PatientGuardianManagePage = () => {
       {confirmModal && (
         <ModalOverlay onClick={() => setConfirmModal(null)}>
           <ModalContent onClick={e => e.stopPropagation()}>
-            <ModalTitle style={{marginBottom: 32}}>
-              {confirmModal.type === 'disconnect' ? '연결을 해제하시겠습니까?' : '재연결 하시겠습니까?'}
+            <ModalTitle style={{ marginBottom: 32 }}>
+              {confirmModal.type === 'disconnect'
+                ? '연결을 해제하시겠습니까?'
+                : '재연결 하시겠습니까?'}
             </ModalTitle>
             <ConfirmBtnRow>
-              <ConfirmBtn onClick={() => {
-                // 실제 해제/재연결 로직은 여기에 (더미)
-                setConfirmModal(null);
-              }}>네</ConfirmBtn>
-              <ConfirmBtnGray onClick={() => setConfirmModal(null)}>아니요</ConfirmBtnGray>
+              <ConfirmBtn
+                onClick={() => {
+                  // 실제 해제/재연결 로직은 여기에 (더미)
+                  setConfirmModal(null);
+                }}
+              >
+                네
+              </ConfirmBtn>
+              <ConfirmBtnGray onClick={() => setConfirmModal(null)}>
+                아니요
+              </ConfirmBtnGray>
             </ConfirmBtnRow>
           </ModalContent>
         </ModalOverlay>
@@ -187,7 +244,7 @@ const Content = styled.div`
 const OuterBox = styled.div`
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
   padding: 18px 0 18px 0;
   margin: 0 auto 24px auto;
   width: 100%;
@@ -199,7 +256,7 @@ const TabBar = styled.div`
   background: #f5f5f5;
   border-radius: 999px;
   margin: 24px auto 16px auto;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   padding: 4px 6px;
   width: 90%;
   max-width: 340px;
@@ -211,8 +268,8 @@ const TabBtn = styled.button<{ $active?: boolean }>`
   flex: 1;
   border: none;
   border-radius: 999px;
-  background: ${({$active})=>$active?'#6c3cff':'transparent'};
-  color: ${({$active})=>$active?'#fff':'#222'};
+  background: ${({ $active }) => ($active ? '#6c3cff' : 'transparent')};
+  color: ${({ $active }) => ($active ? '#fff' : '#222')};
   font-weight: 600;
   font-size: 1.1rem;
   width: 70px;
@@ -222,7 +279,9 @@ const TabBtn = styled.button<{ $active?: boolean }>`
   padding: 0;
   margin: 0 2px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -242,7 +301,7 @@ const Card = styled.div`
   display: flex;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   margin-bottom: 18px;
   padding: 18px 18px 12px 18px;
   align-items: flex-start;
@@ -317,8 +376,8 @@ const StatusBadge = styled.div<{ $status: StatusType }>`
   border-radius: 12px;
   font-size: 0.95rem;
   font-weight: 600;
-  background: ${({$status})=>statusMap[$status].color};
-  color: ${({$status})=>statusMap[$status].text};
+  background: ${({ $status }) => statusMap[$status].color};
+  color: ${({ $status }) => statusMap[$status].text};
 `;
 
 const ActionBtn = styled.button`
@@ -344,7 +403,7 @@ const FloatingBtn = styled.button`
   color: #fff;
   font-size: 2.2rem;
   border: none;
-  box-shadow: 0 4px 16px rgba(108,60,255,0.18);
+  box-shadow: 0 4px 16px rgba(108, 60, 255, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -354,8 +413,11 @@ const FloatingBtn = styled.button`
 
 const ModalOverlay = styled.div`
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.18);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.18);
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -368,7 +430,7 @@ const ModalContent = styled.div`
   padding: 32px 24px 24px 24px;
   min-width: 320px;
   max-width: 90vw;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -386,7 +448,7 @@ const InputBox = styled.div<{ $error?: boolean }>`
   width: 100%;
   background: #fafafa;
   border-radius: 12px;
-  border: 2px solid ${({$error})=>$error?'#e53935':'#eee'};
+  border: 2px solid ${({ $error }) => ($error ? '#e53935' : '#eee')};
   padding: 10px 16px;
   margin-bottom: 8px;
 `;
@@ -473,27 +535,9 @@ const NBadge = styled.div`
   z-index: 2;
 `;
 
-const CardPlusBtn = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #6c3cff;
-  color: #fff;
-  font-size: 2rem;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 2;
-`;
-
 const AcceptBtn = styled.button`
   background: #e6fff3;
-  color: #1B8E4B;
+  color: #1b8e4b;
   border: none;
   border-radius: 12px;
   padding: 4px 18px;
@@ -512,4 +556,4 @@ const RejectBtn = styled.button`
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-`; 
+`;

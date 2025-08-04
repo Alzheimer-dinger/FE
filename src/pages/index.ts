@@ -9,6 +9,9 @@ export { default as Call } from './Call';
 
 // report
 export { default as Report } from './Report';
+export { default as ReportPage } from './ReportPage';
 
 // mypage
 export { default as Mypage } from './Mypage';
+export { default as ProfileEditPage } from './ProfileEditPage';
+export { default as PatientGuardianManagePage } from './PatientGuardianManagePage';

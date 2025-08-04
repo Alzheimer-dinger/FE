@@ -1,7 +1,22 @@
+/**
+ * ProfileEditPage - 프로필 수정 화면
+ *
+ * 세부사항:
+ * - 사용자가 이름, 현재 비밀번호, 새로운 비밀번호, 성별 수정 가능
+ * - 환자/보호자 번호는 읽기 전용
+ * - 비밀번호 변경 시 현재 비밀번호와 새로운 비밀번호 모두 필요
+ * - Signup.tsx와 일관된 UI/UX 제공
+ */
+
 import styled from 'styled-components';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import BackHeader from '@components/common/Header/BackHeader';
+import {
+  BackHeader,
+  ContentContainer,
+  Button,
+  Input,
+} from '@components/common/index';
 
 const ProfileEditPage = () => {
   const navigate = useNavigate();
@@ -10,14 +25,31 @@ const ProfileEditPage = () => {
     currentPassword: '',
     newPassword: '',
     patientNumber: '22369874',
-    gender: 'male'
+    gender: 'male' as 'male' | 'female'
   });
+
+  const [currentPasswordError, setCurrentPasswordError] = useState('');
+  const [newPasswordError, setNewPasswordError] = useState('');
+
+  const isFormValid = 
+    formData.name.trim() !== '' &&
+    formData.currentPassword.trim() !== '' &&
+    formData.newPassword.trim() !== '' &&
+    !currentPasswordError &&
+    !newPasswordError;
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+
+    // 에러 메시지 초기화
+    if (field === 'currentPassword') {
+      setCurrentPasswordError('');
+    } else if (field === 'newPassword') {
+      setNewPasswordError('');
+    }
   };
 
   const handleGenderSelect = (gender: 'male' | 'female') => {
@@ -27,86 +59,108 @@ const ProfileEditPage = () => {
     }));
   };
 
+  const validatePasswords = () => {
+    let hasError = false;
+
+    if (formData.currentPassword.length < 6) {
+      setCurrentPasswordError('현재 비밀번호를 입력해주세요.');
+      hasError = true;
+    }
+
+    if (formData.newPassword.length < 8) {
+      setNewPasswordError('새로운 비밀번호는 8자 이상이어야 합니다.');
+      hasError = true;
+    } else if (!/(?=.*[a-zA-Z])(?=.*[0-9])/.test(formData.newPassword)) {
+      setNewPasswordError('영문과 숫자를 포함해야 합니다.');
+      hasError = true;
+    }
+
+    return !hasError;
+  };
+
   const handleSubmit = () => {
+    if (!isFormValid) return;
+
+    if (!validatePasswords()) return;
+
     // 프로필 수정 로직
     console.log('프로필 수정:', formData);
     navigate('/mypage');
   };
 
-  const isFormValid = formData.currentPassword && formData.newPassword;
-
   return (
     <Container>
       <BackHeader title="프로필 수정" />
-      
       <ContentContainer>
-        <FormSection>
-          <InputGroup>
-            <Label>성함</Label>
-            <Input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-            />
-          </InputGroup>
+        <Title>프로필 수정</Title>
+        <Subtitle>변경하고 싶은 정보를 수정해주세요</Subtitle>
 
-          <InputGroup>
-            <Label>현재 비밀번호</Label>
-            <Input
-              type="password"
-              placeholder="비밀번호를 입력해주세요"
-              value={formData.currentPassword}
-              onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-            />
-          </InputGroup>
+        <Form>
+          <Label>이름</Label>
+          <Input
+            type="default"
+            placeholder="이름을 입력해주세요"
+            value={formData.name}
+            inputType="text"
+            onChange={e => handleInputChange('name', e.target.value)}
+          />
 
-          <InputGroup>
-            <Label>새로운 비밀번호</Label>
-            <Input
-              type="password"
-              placeholder="새로운 비밀번호를 입력해주세요"
-              value={formData.newPassword}
-              onChange={(e) => handleInputChange('newPassword', e.target.value)}
-            />
-          </InputGroup>
+          <Label>현재 비밀번호</Label>
+          <Input
+            type="default"
+            placeholder="현재 비밀번호를 입력해주세요"
+            value={formData.currentPassword}
+            inputType="password"
+            onChange={e => handleInputChange('currentPassword', e.target.value)}
+          />
+          {currentPasswordError && <ErrorText>{currentPasswordError}</ErrorText>}
 
-          <InputGroup>
-            <Label>환자 / 보호자 번호</Label>
-            <Input
-              type="text"
-              value={formData.patientNumber}
-              readOnly
-              className="readonly"
-            />
-          </InputGroup>
+          <Label>새로운 비밀번호</Label>
+          <Input
+            type="default"
+            placeholder="새로운 비밀번호를 입력해주세요"
+            value={formData.newPassword}
+            inputType="password"
+            onChange={e => handleInputChange('newPassword', e.target.value)}
+          />
+          {newPasswordError && <ErrorText>{newPasswordError}</ErrorText>}
 
-          <InputGroup>
-            <Label>성별</Label>
-            <GenderButtons>
-              <GenderButton
-                selected={formData.gender === 'male'}
-                onClick={() => handleGenderSelect('male')}
-              >
-                <GenderIcon>👨</GenderIcon>
-                <GenderText>남성</GenderText>
-              </GenderButton>
-              <GenderButton
-                selected={formData.gender === 'female'}
-                onClick={() => handleGenderSelect('female')}
-              >
-                <GenderIcon>👩</GenderIcon>
-                <GenderText>여성</GenderText>
-              </GenderButton>
-            </GenderButtons>
-          </InputGroup>
-        </FormSection>
+          <Label>환자 / 보호자 번호</Label>
+          <Input
+            type="default"
+            placeholder="환자 / 보호자 번호"
+            value={formData.patientNumber}
+            inputType="text"
+            className="readonly"
+            onChange={() => {}}
+          />
 
-        <SubmitButton 
-          disabled={!isFormValid}
+          <Label>성별</Label>
+          <GenderContainer>
+            <GenderButton
+              selected={formData.gender === 'male'}
+              onClick={() => handleGenderSelect('male')}
+            >
+              <GenderIcon>👨🏻</GenderIcon>
+              <GenderText>남성</GenderText>
+            </GenderButton>
+            <GenderButton
+              selected={formData.gender === 'female'}
+              onClick={() => handleGenderSelect('female')}
+            >
+              <GenderIcon>👩🏻</GenderIcon>
+              <GenderText>여성</GenderText>
+            </GenderButton>
+          </GenderContainer>
+        </Form>
+
+        <Button
+          type="default"
+          buttonText="수정 완료"
+          isDisabled={!isFormValid}
+          bgColor={isFormValid ? '#6a1b9a' : '#d9d9d9'}
           onClick={handleSubmit}
-        >
-          수정 완료
-        </SubmitButton>
+        />
       </ContentContainer>
     </Container>
   );
@@ -115,106 +169,79 @@ const ProfileEditPage = () => {
 export default ProfileEditPage;
 
 const Container = styled.div`
-  width: 100vw;
-  max-width: 425px;
-  min-width: 320px;
-  margin: 0 auto;
-  background: white;
-  min-height: 100vh;
-`;
-
-const ContentContainer = styled.div`
-  padding: 24px 20px;
-`;
-
-const FormSection = styled.div`
-  margin-bottom: 32px;
-`;
-
-const InputGroup = styled.div`
-  margin-bottom: 24px;
-`;
-
-const Label = styled.label`
-  display: block;
-  font-size: 0.9rem;
-  color: #424242;
-  margin-bottom: 8px;
-  font-weight: 500;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1rem;
-  background: white;
-  box-sizing: border-box;
-  
-  &::placeholder {
-    color: #bdbdbd;
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: #6c3cff;
-  }
-  &.readonly:focus {
-    border-color: #e0e0e0;
-  }
-`;
-
-const GenderButtons = styled.div`
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  width: 100%;
+`;
+
+const Title = styled.h2`
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6a1b9a;
+  text-align: center;
+  margin: 1rem 0 0 0;
+`;
+
+const Subtitle = styled.p`
+  font-size: 0.9rem;
+  color: #a1a1a1;
+  text-align: center;
+  margin: 0;
+`;
+
+const Form = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 1rem 0 2rem 0;
+`;
+
+const Label = styled.p`
+  font-size: 0.9rem;
+  color: #343a40;
+  font-weight: bold;
+  margin: 1.5rem 0 0.5rem 0;
+`;
+
+const GenderContainer = styled.div`
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 1.5rem;
 `;
 
 const GenderButton = styled.button<{ selected: boolean }>`
   flex: 1;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
-  height: 48px;
-  border: 2px solid ${({ selected }) => selected ? '#2196f3' : '#e0e0e0'};
+  padding: 1rem;
+  border: 2px solid ${({ selected }) => selected ? '#6a1b9a' : '#e0e0e0'};
   border-radius: 8px;
-  background: ${({ selected }) => selected ? '#e3f2fd' : 'white'};
+  background: ${({ selected }) => selected ? '#f3e8fd' : 'white'};
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 1rem;
   
   &:hover {
-    border-color: #2196f3;
-    background: #e3f2fd;
+    border-color: #6a1b9a;
+    background: #f3e8fd;
   }
 `;
 
 const GenderIcon = styled.div`
-  font-size: 1.3rem;
-  margin-right: 8px;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 `;
 
 const GenderText = styled.span`
-  font-size: 0.95rem;
-  color: #424242;
+  font-size: 0.9rem;
+  color: #343a40;
   font-weight: 500;
 `;
 
-const SubmitButton = styled.button<{ disabled: boolean }>`
-  width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: ${({ disabled }) => disabled ? 'not-allowed' : 'pointer'};
-  background: ${({ disabled }) => disabled ? '#f5f5f5' : '#6c3cff'};
-  color: ${({ disabled }) => disabled ? '#bdbdbd' : 'white'};
-  transition: all 0.2s;
-  
-  &:hover:not(:disabled) {
-    background: #5a2fd8;
-  }
+const ErrorText = styled.p`
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin: 0.3rem 0 0 0;
 `; 

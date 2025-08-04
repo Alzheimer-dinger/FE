@@ -37,7 +37,7 @@ const BottomNav = () => {
         </NavItem>
         <NavItem
           active={activeTab === 'report'}
-          onClick={() => handleNavClick('report', '/report/daily')}
+          onClick={() => handleNavClick('report', '/report')}
         >
           <FiPieChart size={24} />
           리포트
