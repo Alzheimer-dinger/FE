@@ -1,7 +1,6 @@
 import styled from 'styled-components';
-import React from 'react';
 import { IoPersonOutline } from 'react-icons/io5';
-import { Button } from '@components/common/index';
+import { Button } from '@components/index';
 
 interface AddPatientModalProps {
   isOpen: boolean;
@@ -13,14 +12,14 @@ interface AddPatientModalProps {
   onAdd: () => void;
 }
 
-const AddPatientModal: React.FC<AddPatientModalProps> = ({
+const AddPatientModal = ({
   isOpen,
   onClose,
   patientId,
   error,
   onPatientIdChange,
   onAdd,
-}) => {
+}: AddPatientModalProps) => {
   if (!isOpen) return null;
 
   return (

@@ -1,6 +1,5 @@
 import styled from 'styled-components';
-import React from 'react';
-import { Button } from '@components/common/index';
+import { Button } from '@components/index';
 
 interface ConfirmActionModalProps {
   isOpen: boolean;
@@ -9,12 +8,12 @@ interface ConfirmActionModalProps {
   onConfirm: () => void;
 }
 
-const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
+const ConfirmActionModal = ({
   isOpen,
   onClose,
   actionType,
   onConfirm,
-}) => {
+}: ConfirmActionModalProps) => {
   if (!isOpen) return null;
 
   const title =

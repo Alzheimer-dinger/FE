@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import React from 'react';
 
 interface PatientCardProps {
   name: string;
@@ -33,7 +32,7 @@ const statusMap = {
   disconnected: { label: '해제됨', color: '#FFD6D6', text: '#E57373' },
 };
 
-const PatientCard: React.FC<PatientCardProps> = ({
+const PatientCard = ({
   name,
   role,
   id,
@@ -43,7 +42,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
   onReconnect,
   onAccept,
   onReject,
-}) => {
+}: PatientCardProps) => {
   const isPending = status === 'pending';
 
   return (

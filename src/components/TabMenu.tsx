@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import React from 'react';
 
 interface TabMenuProps {
   tabs: string[];
@@ -15,7 +14,7 @@ interface TabMenuProps {
  * @param activeTab - 현재 활성화된 탭
  * @param onTabChange - 탭 변경 핸들러
  */
-const TabMenu: React.FC<TabMenuProps> = ({ tabs, activeTab, onTabChange }) => {
+const TabMenu = ({ tabs, activeTab, onTabChange }: TabMenuProps) => {
   return (
     <TabContainer>
       {tabs.map(tab => (

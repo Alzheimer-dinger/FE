@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import React from 'react';
 import Picker from 'react-mobile-picker';
 
 interface TimePickerModalProps {
@@ -16,13 +15,13 @@ interface TimePickerModalProps {
   onCancel: () => void;
 }
 
-const TimePickerModal: React.FC<TimePickerModalProps> = ({
+const TimePickerModal = ({
   isOpen,
   timeValue,
   onTimeChange,
   onConfirm,
   onCancel,
-}) => {
+}: TimePickerModalProps) => {
   if (!isOpen) return null;
 
   // Picker 데이터

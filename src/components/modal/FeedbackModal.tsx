@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import React from 'react';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -13,7 +12,7 @@ interface FeedbackModalProps {
   onSubmit: () => void;
 }
 
-const FeedbackModal: React.FC<FeedbackModalProps> = ({
+const FeedbackModal = ({
   isOpen,
   onClose,
   selectedRating,
@@ -21,7 +20,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
   onRatingChange,
   onReasonChange,
   onSubmit,
-}) => {
+}: FeedbackModalProps) => {
   if (!isOpen) return null;
 
   return (

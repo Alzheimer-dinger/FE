@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import React from 'react';
 
 interface ProfileImageModalProps {
   isOpen: boolean;
@@ -8,12 +7,12 @@ interface ProfileImageModalProps {
   onImageSelect: () => void;
 }
 
-const ProfileImageModal: React.FC<ProfileImageModalProps> = ({
+const ProfileImageModal = ({
   isOpen,
   onClose,
   profileImage,
   onImageSelect,
-}) => {
+}: ProfileImageModalProps) => {
   if (!isOpen) return null;
 
   return (

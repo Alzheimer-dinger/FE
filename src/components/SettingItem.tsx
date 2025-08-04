@@ -10,14 +10,14 @@ interface SettingItemProps {
   showArrow?: boolean;
 }
 
-const SettingItem: React.FC<SettingItemProps> = ({
+const SettingItem = ({
   icon,
   iconBgColor,
   text,
   onClick,
   rightElement,
   showArrow = false,
-}) => {
+}: SettingItemProps) => {
   return (
     <ItemContainer onClick={onClick}>
       <SettingIcon style={{ background: iconBgColor }}>{icon}</SettingIcon>
