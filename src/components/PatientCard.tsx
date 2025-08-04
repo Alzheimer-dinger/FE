@@ -26,6 +26,13 @@ interface PatientCardProps {
  * @param onAccept - 수락 핸들러
  * @param onReject - 거절 핸들러
  */
+
+const statusMap = {
+  connected: { label: '연결됨', color: '#B6F3D1', text: '#1B8E4B' },
+  requested: { label: '요청됨', color: '#FFE9B6', text: '#C89A1B' },
+  disconnected: { label: '해제됨', color: '#FFD6D6', text: '#E57373' },
+};
+
 const PatientCard: React.FC<PatientCardProps> = ({
   name,
   role,
@@ -37,12 +44,6 @@ const PatientCard: React.FC<PatientCardProps> = ({
   onAccept,
   onReject,
 }) => {
-  const statusMap = {
-    connected: { label: '연결됨', color: '#B6F3D1', text: '#1B8E4B' },
-    requested: { label: '요청됨', color: '#FFE9B6', text: '#C89A1B' },
-    disconnected: { label: '해제됨', color: '#FFD6D6', text: '#E57373' },
-  };
-
   const isPending = status === 'pending';
 
   return (
