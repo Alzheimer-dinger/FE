@@ -10,14 +10,17 @@ const DailyReportPage = () => {
     <Container>
       <DefaultHeader showIcon={false} />
       <TabMenu>
-        <Tab active onClick={() => navigate('/report/daily')}>일간</Tab>
+        <Tab active onClick={() => navigate('/report/daily')}>
+          일간
+        </Tab>
         <Tab onClick={() => navigate('/report/comprehensive')}>종합</Tab>
       </TabMenu>
       <CalendarEmojis />
       <Section>
         <EmotionScoreCircle score={90} />
         <ScoreDesc>
-          오늘의 감정 평가 결과, 사용자는 전반적으로 긍정적인 기운을 유지했으며 높은 행복 지수를 보였습니다.
+          오늘의 감정 평가 결과, 사용자는 전반적으로 긍정적인 기운을 유지했으며
+          높은 행복 지수를 보였습니다.
         </ScoreDesc>
       </Section>
       <BottomNav />
@@ -67,8 +70,11 @@ const Tab = styled.button<{ active?: boolean }>`
   font-size: 1.1rem;
   font-weight: 600;
   color: ${({ active }) => (active ? '#6c3cff' : '#bbb')};
-  border-bottom: 2px solid ${({ active }) => (active ? '#6c3cff' : 'transparent')};
+  border-bottom: 2px solid
+    ${({ active }) => (active ? '#6c3cff' : 'transparent')};
   padding: 8px 24px 6px 24px;
   cursor: pointer;
-  transition: color 0.2s, border-bottom 0.2s;
-`; 
+  transition:
+    color 0.2s,
+    border-bottom 0.2s;
+`;

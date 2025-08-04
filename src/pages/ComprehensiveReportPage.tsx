@@ -4,7 +4,8 @@ import { BottomNav, DefaultHeader } from '../components/common';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-const DUMMY_REPORT = '더미 종합 보고서입니다. 서버에서 데이터를 받아오지 못했습니다.';
+const DUMMY_REPORT =
+  '더미 종합 보고서입니다. 서버에서 데이터를 받아오지 못했습니다.';
 
 const ComprehensiveReportPage = () => {
   const navigate = useNavigate();
@@ -43,11 +44,11 @@ const ComprehensiveReportPage = () => {
 
   useEffect(() => {
     fetch('http://localhost:8000/api/reports/summary')
-      .then((res) => {
+      .then(res => {
         if (!res.ok) throw new Error('서버 오류');
         return res.json();
       })
-      .then((data) => {
+      .then(data => {
         // data.summary 또는 data.result 등 실제 응답 구조에 맞게 수정 필요
         setSummary(data.summary || DUMMY_REPORT);
       })
@@ -70,11 +71,11 @@ const ComprehensiveReportPage = () => {
           <GraphHeader>
             <SubTitle>감정 변화 그래프</SubTitle>
             <PeriodDropdown>
-              <select 
-                value={selectedPeriod} 
-                onChange={(e) => handlePeriodChange(e.target.value)}
+              <select
+                value={selectedPeriod}
+                onChange={e => handlePeriodChange(e.target.value)}
               >
-                {periods.map((period) => (
+                {periods.map(period => (
                   <option key={period} value={period}>
                     {period}
                   </option>
@@ -88,18 +89,18 @@ const ComprehensiveReportPage = () => {
               <DateInputs>
                 <DateInput>
                   <label>시작 날짜:</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={startDate}
-                    onChange={(e) => handleDateSelect(e.target.value, 'start')}
+                    onChange={e => handleDateSelect(e.target.value, 'start')}
                   />
                 </DateInput>
                 <DateInput>
                   <label>끝 날짜:</label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     value={endDate}
-                    onChange={(e) => handleDateSelect(e.target.value, 'end')}
+                    onChange={e => handleDateSelect(e.target.value, 'end')}
                   />
                 </DateInput>
               </DateInputs>
@@ -121,14 +122,14 @@ const ComprehensiveReportPage = () => {
             </StatCard>
           </StatsRow>
           <WarningBox>
-            <b>⚠️ 경고</b><br />
-            인지 점수가 평균치보다 낮으니 가까운 병원에서 검사를 받아보시는 걸 추천해요!
+            <b>⚠️ 경고</b>
+            <br />
+            인지 점수가 평균치보다 낮으니 가까운 병원에서 검사를 받아보시는 걸
+            추천해요!
           </WarningBox>
         </GraphSection>
         <SectionTitle>종합 보고서</SectionTitle>
-        <ResultBox>
-          {loading ? '로딩 중...' : summary}
-        </ResultBox>
+        <ResultBox>{loading ? '로딩 중...' : summary}</ResultBox>
       </Section>
       <BottomNav />
     </Container>
@@ -162,10 +163,13 @@ const Tab = styled.button<{ active?: boolean }>`
   font-size: 1.1rem;
   font-weight: 600;
   color: ${({ active }) => (active ? '#6c3cff' : '#bbb')};
-  border-bottom: 2px solid ${({ active }) => (active ? '#6c3cff' : 'transparent')};
+  border-bottom: 2px solid
+    ${({ active }) => (active ? '#6c3cff' : 'transparent')};
   padding: 8px 24px 6px 24px;
   cursor: pointer;
-  transition: color 0.2s, border-bottom 0.2s;
+  transition:
+    color 0.2s,
+    border-bottom 0.2s;
 `;
 
 const Section = styled.section`
@@ -186,7 +190,7 @@ const SectionTitle = styled.h3`
 `;
 
 const GraphSection = styled.div`
-  border: 1px solid #D7D7D7;
+  border: 1px solid #d7d7d7;
   border-radius: 12px;
   padding: 16px;
   margin: 16px 0;
@@ -237,13 +241,13 @@ const DateInput = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  
+
   label {
     font-size: 0.9rem;
     color: #666;
     min-width: 80px;
   }
-  
+
   input {
     padding: 6px 8px;
     border: 1px solid #ccc;
@@ -255,7 +259,7 @@ const DateInput = styled.div`
 const CalendarButtons = styled.div`
   display: flex;
   gap: 8px;
-  
+
   button {
     padding: 8px 16px;
     border: none;
@@ -263,12 +267,12 @@ const CalendarButtons = styled.div`
     cursor: pointer;
     font-size: 0.9rem;
   }
-  
+
   button:first-child {
     background: #6c3cff;
     color: white;
   }
-  
+
   button:last-child {
     background: #f0f0f0;
     color: #333;
@@ -333,4 +337,4 @@ const ResultBox = styled.div`
   background: #fafafa;
   margin-top: 12px;
   white-space: pre-line;
-`; 
+`;
