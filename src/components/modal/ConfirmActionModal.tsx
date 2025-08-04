@@ -13,18 +13,19 @@ const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
   isOpen,
   onClose,
   actionType,
-  onConfirm
+  onConfirm,
 }) => {
   if (!isOpen) return null;
 
-  const title = actionType === 'disconnect' ? '연결을 해제하시겠습니까?' : '재연결 하시겠습니까?';
+  const title =
+    actionType === 'disconnect'
+      ? '연결을 해제하시겠습니까?'
+      : '재연결 하시겠습니까?';
 
   return (
     <ModalOverlay onClick={onClose}>
       <ModalContent onClick={e => e.stopPropagation()}>
-        <ModalTitle style={{marginBottom: 32}}>
-          {title}
-        </ModalTitle>
+        <ModalTitle style={{ marginBottom: 32 }}>{title}</ModalTitle>
         <ConfirmBtnRow>
           <Button
             type="default"
@@ -67,7 +68,7 @@ const ModalContent = styled.div`
   padding: 24px 20px 20px 20px;
   width: 90%;
   max-width: 320px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -84,4 +85,4 @@ const ConfirmBtnRow = styled.div`
   display: flex;
   gap: 12px;
   width: 100%;
-`; 
+`;

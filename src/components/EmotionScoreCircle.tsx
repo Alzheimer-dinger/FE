@@ -63,4 +63,4 @@ const ScoreText = styled.div`
   font-size: 1.2rem;
   color: #6c3cff;
   font-weight: bold;
-`; 
+`;

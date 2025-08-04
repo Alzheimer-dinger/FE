@@ -16,7 +16,7 @@ const SettingItem: React.FC<SettingItemProps> = ({
   text,
   onClick,
   rightElement,
-  showArrow = false
+  showArrow = false,
 }) => {
   return (
     <ItemContainer onClick={onClick}>
@@ -70,4 +70,4 @@ const ArrowIcon = styled.span`
   color: #ccc;
   font-size: 1.2rem;
   font-weight: bold;
-`; 
+`;

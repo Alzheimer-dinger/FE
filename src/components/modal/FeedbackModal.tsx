@@ -6,7 +6,9 @@ interface FeedbackModalProps {
   onClose: () => void;
   selectedRating: string;
   feedbackReason: string;
+  // eslint-disable-next-line no-unused-vars
   onRatingChange: (rating: string) => void;
+  // eslint-disable-next-line no-unused-vars
   onReasonChange: (reason: string) => void;
   onSubmit: () => void;
 }
@@ -18,7 +20,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
   feedbackReason,
   onRatingChange,
   onReasonChange,
-  onSubmit
+  onSubmit,
 }) => {
   if (!isOpen) return null;
 
@@ -32,8 +34,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
             { rating: 'LOW', emoji: '😞' },
             { rating: 'MIDDLE', emoji: '😐' },
             { rating: 'HIGH', emoji: '🙂' },
-            { rating: 'VERY_HIGH', emoji: '😄' }
-          ].map((item) => (
+            { rating: 'VERY_HIGH', emoji: '😄' },
+          ].map(item => (
             <RatingEmoji
               key={item.rating}
               $selected={selectedRating === item.rating}
@@ -47,11 +49,9 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
         <FeedbackTextarea
           placeholder="피드백을 입력해주세요..."
           value={feedbackReason}
-          onChange={(e) => onReasonChange(e.target.value)}
+          onChange={e => onReasonChange(e.target.value)}
         />
-        <FeedbackSubmitBtn onClick={onSubmit}>
-          제출
-        </FeedbackSubmitBtn>
+        <FeedbackSubmitBtn onClick={onSubmit}>제출</FeedbackSubmitBtn>
       </ModalContent>
     </ModalOverlay>
   );
@@ -79,7 +79,7 @@ const ModalContent = styled.div`
   padding: 24px 20px 20px 20px;
   width: 90%;
   max-width: 320px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,14 +105,15 @@ const RatingEmoji = styled.div<{ $selected: boolean }>`
   cursor: pointer;
   padding: 6px;
   border-radius: 50%;
-  background: ${({ $selected }) => $selected ? '#f3e8fd' : 'transparent'};
-  border: 2px solid ${({ $selected }) => $selected ? '#6c3cff' : 'transparent'};
+  background: ${({ $selected }) => ($selected ? '#f3e8fd' : 'transparent')};
+  border: 2px solid
+    ${({ $selected }) => ($selected ? '#6c3cff' : 'transparent')};
   transition: all 0.2s;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   &:hover {
     transform: scale(1.05);
   }
@@ -135,7 +136,7 @@ const FeedbackTextarea = styled.textarea`
   font-size: 0.95rem;
   resize: vertical;
   margin-bottom: 16px;
-  
+
   &:focus {
     outline: none;
     border-color: #6c3cff;
@@ -152,4 +153,4 @@ const FeedbackSubmitBtn = styled.button`
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-`; 
+`;

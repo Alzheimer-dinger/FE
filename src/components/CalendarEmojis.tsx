@@ -43,7 +43,9 @@ const CalendarEmojis = () => {
   }
 
   // State for selected day
-  const [selectedDay, setSelectedDay] = useState<number | null>(today.getDate());
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    today.getDate(),
+  );
 
   const handleClick = (cell: any) => {
     if (cell) {
@@ -54,7 +56,7 @@ const CalendarEmojis = () => {
   return (
     <CalendarContainer>
       <WeekRow>
-        {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+        {['일', '월', '화', '수', '목', '금', '토'].map(day => (
           <DayLabel key={day}>{day}</DayLabel>
         ))}
       </WeekRow>
@@ -72,7 +74,7 @@ const CalendarEmojis = () => {
               </EmojiCell>
             ) : (
               <EmojiCell key={dIdx} />
-            )
+            ),
           )}
         </WeekRow>
       ))}
@@ -123,4 +125,4 @@ const DayNumber = styled.div`
   font-size: 0.8rem;
   color: #aaa;
   margin-top: 0px;
-`; 
+`;

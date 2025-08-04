@@ -1,10 +1,10 @@
 import styled from 'styled-components';
 import { useState } from 'react';
-import { 
-  DefaultHeader, 
-  BottomNav, 
+import {
+  DefaultHeader,
+  BottomNav,
   ContentContainer,
-  TabMenu 
+  TabMenu,
 } from '@components/common/index';
 import CalendarEmojis from '@components/CalendarEmojis';
 import EmotionScoreCircle from '@components/EmotionScoreCircle';
@@ -20,13 +20,9 @@ const ReportPage = () => {
       <DefaultHeader showIcon={false} />
       <ContentContainer>
         <Title>앱 이름</Title>
-        
+
         {/* Tab Menu */}
-        <TabMenu
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+        <TabMenu tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Daily Report Content */}
         {activeTab === '일간' && (
@@ -35,7 +31,8 @@ const ReportPage = () => {
             <Section>
               <EmotionScoreCircle score={90} />
               <ScoreDesc>
-                오늘의 감정 평가 결과, 사용자는 전반적으로 긍정적인 기운을 유지했으며 높은 행복 지수를 보였습니다.
+                오늘의 감정 평가 결과, 사용자는 전반적으로 긍정적인 기운을
+                유지했으며 높은 행복 지수를 보였습니다.
               </ScoreDesc>
             </Section>
           </DailyContent>
@@ -68,8 +65,10 @@ const ReportPage = () => {
                 </StatCard>
               </StatsRow>
               <WarningBox>
-                <b>⚠️ 경고</b><br />
-                인지 점수가 평균치보다 낮으니 가까운 병원에서 검사를 받아보시는 걸 추천해요!
+                <b>⚠️ 경고</b>
+                <br />
+                인지 점수가 평균치보다 낮으니 가까운 병원에서 검사를 받아보시는
+                걸 추천해요!
               </WarningBox>
             </GraphSection>
             <SectionTitle>종합 보고서</SectionTitle>
@@ -211,4 +210,4 @@ const ResultBox = styled.div`
   font-size: 0.9rem;
   color: #666;
   line-height: 1.5;
-`; 
+`;

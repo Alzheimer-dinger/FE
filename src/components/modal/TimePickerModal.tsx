@@ -10,6 +10,7 @@ interface TimePickerModalProps {
     minute: string;
     period: string;
   };
+  // eslint-disable-next-line no-unused-vars
   onTimeChange: (value: any) => void;
   onConfirm: () => void;
   onCancel: () => void;
@@ -17,17 +18,18 @@ interface TimePickerModalProps {
 
 const TimePickerModal: React.FC<TimePickerModalProps> = ({
   isOpen,
-  onClose,
   timeValue,
   onTimeChange,
   onConfirm,
-  onCancel
+  onCancel,
 }) => {
   if (!isOpen) return null;
 
   // Picker 데이터
-  const hourOptions = Array.from({length: 12}, (_, i) => String(i+1));
-  const minuteOptions = Array.from({length: 60}, (_, i) => i.toString().padStart(2, '0'));
+  const hourOptions = Array.from({ length: 12 }, (_, i) => String(i + 1));
+  const minuteOptions = Array.from({ length: 60 }, (_, i) =>
+    i.toString().padStart(2, '0'),
+  );
   const periodOptions = ['오전', '오후'];
 
   return (
@@ -42,21 +44,27 @@ const TimePickerModal: React.FC<TimePickerModalProps> = ({
           <PickerColumnWrapper>
             <Picker.Column name="hour">
               {hourOptions.map(h => (
-                <Picker.Item value={h} key={h}>{h}</Picker.Item>
+                <Picker.Item value={h} key={h}>
+                  {h}
+                </Picker.Item>
               ))}
             </Picker.Column>
           </PickerColumnWrapper>
           <PickerColumnWrapper>
             <Picker.Column name="minute">
               {minuteOptions.map(m => (
-                <Picker.Item value={m} key={m}>{m}</Picker.Item>
+                <Picker.Item value={m} key={m}>
+                  {m}
+                </Picker.Item>
               ))}
             </Picker.Column>
           </PickerColumnWrapper>
           <PickerColumnWrapper>
             <Picker.Column name="period">
               {periodOptions.map(p => (
-                <Picker.Item value={p} key={p}>{p}</Picker.Item>
+                <Picker.Item value={p} key={p}>
+                  {p}
+                </Picker.Item>
               ))}
             </Picker.Column>
           </PickerColumnWrapper>
@@ -82,7 +90,7 @@ const TimeModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -94,7 +102,7 @@ const TimeModalContent = styled.div`
   border-radius: 20px;
   padding: 32px 24px 24px 24px;
   min-width: 260px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -138,4 +146,4 @@ const TimeModalButtonGray = styled.button`
 
 const PickerColumnWrapper = styled.div`
   margin: 0 16px;
-`; 
+`;

@@ -52,7 +52,7 @@ const Mypage = () => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         const result = e.target?.result as string;
         setProfileImage(result);
         setShowImageModal(false);
@@ -75,8 +75,8 @@ const Mypage = () => {
         },
         body: JSON.stringify({
           rating: selectedRating,
-          reason: feedbackReason
-        })
+          reason: feedbackReason,
+        }),
       });
 
       if (response.ok) {
@@ -109,7 +109,6 @@ const Mypage = () => {
     <Container>
       <DefaultHeader showIcon={false} />
       <ContentContainer>
-        
         <ProfileSection>
           <ProfileImage onClick={handleProfileImageClick}>
             {profileImage.startsWith('data:image') ? (
@@ -132,29 +131,34 @@ const Mypage = () => {
             onClick={handleProfileEditClick}
             showArrow={true}
           />
-          
+
           <SettingItem
             icon="🔔"
             iconBgColor="#e8f5e8"
             text="알림설정"
             rightElement={
-              <ToggleSwitch onClick={(e) => {
-                e.stopPropagation();
-                setAlarmOn((prev) => !prev);
-              }} $on={alarmOn}>
+              <ToggleSwitch
+                onClick={e => {
+                  e.stopPropagation();
+                  setAlarmOn(prev => !prev);
+                }}
+                $on={alarmOn}
+              >
                 <ToggleSlider $on={alarmOn} />
               </ToggleSwitch>
             }
           />
-          
+
           <SettingItem
             icon="⏰"
             iconBgColor="#ffebee"
             text="리마인드 시간"
             onClick={() => setShowTimeModal(true)}
-            rightElement={remindTime && <RemindTimeText>{remindTime}</RemindTimeText>}
+            rightElement={
+              remindTime && <RemindTimeText>{remindTime}</RemindTimeText>
+            }
           />
-          
+
           <SettingItem
             icon="🛡️"
             iconBgColor="#e3f2fd"
@@ -162,7 +166,7 @@ const Mypage = () => {
             onClick={() => navigate('/manage')}
             showArrow={true}
           />
-          
+
           <SettingItem
             icon="❓"
             iconBgColor="#fff3e0"
@@ -170,7 +174,7 @@ const Mypage = () => {
             onClick={() => setShowFeedbackModal(true)}
             showArrow={true}
           />
-          
+
           <SettingItem
             icon="⚙️"
             iconBgColor="#e8f5e8"
@@ -181,7 +185,7 @@ const Mypage = () => {
         </SettingsList>
       </ContentContainer>
       <BottomNav />
-      
+
       {/* 모달 컴포넌트들 */}
       <ProfileImageModal
         isOpen={showImageModal}
@@ -189,14 +193,16 @@ const Mypage = () => {
         profileImage={profileImage}
         onImageSelect={handleImageSelect}
       />
-      
+
       <TimePickerModal
         isOpen={showTimeModal}
         onClose={() => setShowTimeModal(false)}
         timeValue={remindTimeValue}
         onTimeChange={setRemindTimeValue}
         onConfirm={() => {
-          setRemindTime(`${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`);
+          setRemindTime(
+            `${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`,
+          );
           setShowTimeModal(false);
         }}
         onCancel={() => {
@@ -204,7 +210,7 @@ const Mypage = () => {
           setShowTimeModal(false);
         }}
       />
-      
+
       <FeedbackModal
         isOpen={showFeedbackModal}
         onClose={handleCloseFeedbackModal}
@@ -216,12 +222,8 @@ const Mypage = () => {
       />
 
       {/* 토스트 메시지 */}
-      {showToast && (
-        <ToastMessage>
-          전송이 완료되었습니다.
-        </ToastMessage>
-      )}
-      
+      {showToast && <ToastMessage>전송이 완료되었습니다.</ToastMessage>}
+
       {/* 숨겨진 파일 입력 */}
       <input
         type="file"
@@ -270,13 +272,15 @@ const ProfileImage = styled.div`
   justify-content: center;
   border: 3px solid #e3f2fd;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
-  
+
   &:active {
     transform: scale(1.02);
   }
@@ -356,5 +360,3 @@ const ToastMessage = styled.div`
   font-size: 1rem;
   z-index: 3000;
 `;
-
-

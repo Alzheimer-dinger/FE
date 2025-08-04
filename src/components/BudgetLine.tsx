@@ -89,7 +89,7 @@ const BudgetLine = () => {
   return (
     <Container>
       <EmotionSelector>
-        {emotions.map((emotion) => (
+        {emotions.map(emotion => (
           <EmotionButton
             key={emotion.key}
             onClick={() => handleEmotionClick(emotion.key)}
@@ -102,7 +102,9 @@ const BudgetLine = () => {
       </EmotionSelector>
       <GraphContainer>
         <ResponsiveContainer width="100%" height={120}>
-          <LineChart data={emotionData[selectedEmotion as keyof typeof emotionData]}>
+          <LineChart
+            data={emotionData[selectedEmotion as keyof typeof emotionData]}
+          >
             <XAxis dataKey="day" hide />
             <YAxis hide />
             <Tooltip cursor={<CustomCursor />} />
@@ -181,4 +183,4 @@ const Label = styled.div`
 
 const GraphContainer = styled.div`
   height: 120px;
-`; 
+`;

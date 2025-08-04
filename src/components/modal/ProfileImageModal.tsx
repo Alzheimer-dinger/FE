@@ -12,13 +12,13 @@ const ProfileImageModal: React.FC<ProfileImageModalProps> = ({
   isOpen,
   onClose,
   profileImage,
-  onImageSelect
+  onImageSelect,
 }) => {
   if (!isOpen) return null;
 
   return (
     <ModalOverlay onClick={onClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
+      <ModalContent onClick={e => e.stopPropagation()}>
         <ModalTitle>프로필 사진 수정</ModalTitle>
         <ModalImageContainer>
           <ModalImage>
@@ -29,12 +29,8 @@ const ProfileImageModal: React.FC<ProfileImageModalProps> = ({
             )}
           </ModalImage>
         </ModalImageContainer>
-        <ModalButton onClick={onImageSelect}>
-          사진 선택하기
-        </ModalButton>
-        <ModalCancelButton onClick={onClose}>
-          취소
-        </ModalCancelButton>
+        <ModalButton onClick={onImageSelect}>사진 선택하기</ModalButton>
+        <ModalCancelButton onClick={onClose}>취소</ModalCancelButton>
       </ModalContent>
     </ModalOverlay>
   );
@@ -62,7 +58,7 @@ const ModalContent = styled.div`
   padding: 24px 20px 20px 20px;
   width: 90%;
   max-width: 320px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -109,7 +105,7 @@ const ModalButton = styled.button`
   cursor: pointer;
   margin-bottom: 12px;
   width: 100%;
-  
+
   &:hover {
     background: #5a2fd8;
   }
@@ -124,8 +120,8 @@ const ModalCancelButton = styled.button`
   font-size: 1rem;
   cursor: pointer;
   width: 100%;
-  
+
   &:hover {
     background: #e0e0e0;
   }
-`; 
+`;

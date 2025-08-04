@@ -25,13 +25,13 @@ const ProfileEditPage = () => {
     currentPassword: '',
     newPassword: '',
     patientNumber: '22369874',
-    gender: 'male' as 'male' | 'female'
+    gender: 'male' as 'male' | 'female',
   });
 
   const [currentPasswordError, setCurrentPasswordError] = useState('');
   const [newPasswordError, setNewPasswordError] = useState('');
 
-  const isFormValid = 
+  const isFormValid =
     formData.name.trim() !== '' &&
     formData.currentPassword.trim() !== '' &&
     formData.newPassword.trim() !== '' &&
@@ -41,7 +41,7 @@ const ProfileEditPage = () => {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
 
     // 에러 메시지 초기화
@@ -55,7 +55,7 @@ const ProfileEditPage = () => {
   const handleGenderSelect = (gender: 'male' | 'female') => {
     setFormData(prev => ({
       ...prev,
-      gender
+      gender,
     }));
   };
 
@@ -113,7 +113,9 @@ const ProfileEditPage = () => {
             inputType="password"
             onChange={e => handleInputChange('currentPassword', e.target.value)}
           />
-          {currentPasswordError && <ErrorText>{currentPasswordError}</ErrorText>}
+          {currentPasswordError && (
+            <ErrorText>{currentPasswordError}</ErrorText>
+          )}
 
           <Label>새로운 비밀번호</Label>
           <Input
@@ -217,12 +219,12 @@ const GenderButton = styled.button<{ selected: boolean }>`
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  border: 2px solid ${({ selected }) => selected ? '#6a1b9a' : '#e0e0e0'};
+  border: 2px solid ${({ selected }) => (selected ? '#6a1b9a' : '#e0e0e0')};
   border-radius: 8px;
-  background: ${({ selected }) => selected ? '#f3e8fd' : 'white'};
+  background: ${({ selected }) => (selected ? '#f3e8fd' : 'white')};
   cursor: pointer;
   transition: all 0.2s;
-  
+
   &:hover {
     border-color: #6a1b9a;
     background: #f3e8fd;
@@ -244,4 +246,4 @@ const ErrorText = styled.p`
   color: #e74c3c;
   font-size: 0.8rem;
   margin: 0.3rem 0 0 0;
-`; 
+`;

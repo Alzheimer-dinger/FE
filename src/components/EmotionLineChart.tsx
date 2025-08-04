@@ -8,11 +8,13 @@ const EmotionLineChart = () => {
   const height = 100;
   const max = 100;
   const min = 0;
-  const points = dummyData.map((v, i) => {
-    const x = (width / (dummyData.length - 1)) * i;
-    const y = height - ((v - min) / (max - min)) * height;
-    return `${x},${y}`;
-  }).join(' ');
+  const points = dummyData
+    .map((v, i) => {
+      const x = (width / (dummyData.length - 1)) * i;
+      const y = height - ((v - min) / (max - min)) * height;
+      return `${x},${y}`;
+    })
+    .join(' ');
 
   return (
     <ChartWrapper>
@@ -40,4 +42,4 @@ const ChartWrapper = styled.div`
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
-`; 
+`;

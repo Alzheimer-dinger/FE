@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from 'react-router-dom';
 import styled from 'styled-components';
 import {
   Login,
@@ -6,7 +11,6 @@ import {
   Role,
   Signup,
   Call,
-  Report,
   Mypage,
   ReportPage,
   ProfileEditPage,

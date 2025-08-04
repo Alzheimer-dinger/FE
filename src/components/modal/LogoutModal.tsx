@@ -10,7 +10,7 @@ interface LogoutModalProps {
 const LogoutModal: React.FC<LogoutModalProps> = ({
   isOpen,
   onClose,
-  onConfirm
+  onConfirm,
 }) => {
   if (!isOpen) return null;
 
@@ -20,7 +20,9 @@ const LogoutModal: React.FC<LogoutModalProps> = ({
         <ModalTitle>로그아웃 하시겠습니까?</ModalTitle>
         <LogoutButtonContainer>
           <LogoutButton onClick={onConfirm}>네</LogoutButton>
-          <LogoutButton secondary onClick={onClose}>아니오</LogoutButton>
+          <LogoutButton secondary onClick={onClose}>
+            아니오
+          </LogoutButton>
         </LogoutButtonContainer>
       </ModalContent>
     </ModalOverlay>
@@ -49,7 +51,7 @@ const ModalContent = styled.div`
   padding: 24px 20px 20px 20px;
   width: 90%;
   max-width: 320px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -71,8 +73,8 @@ const LogoutButtonContainer = styled.div`
 
 const LogoutButton = styled.button<{ secondary?: boolean }>`
   flex: 1;
-  background: ${({ secondary }) => secondary ? '#f5f5f5' : '#6c3cff'};
-  color: ${({ secondary }) => secondary ? '#666' : 'white'};
+  background: ${({ secondary }) => (secondary ? '#f5f5f5' : '#6c3cff')};
+  color: ${({ secondary }) => (secondary ? '#666' : 'white')};
   border: none;
   border-radius: 8px;
   padding: 12px 0;
@@ -82,6 +84,6 @@ const LogoutButton = styled.button<{ secondary?: boolean }>`
   transition: background 0.2s;
 
   &:hover {
-    background: ${({ secondary }) => secondary ? '#e0e0e0' : '#5a2fd8'};
+    background: ${({ secondary }) => (secondary ? '#e0e0e0' : '#5a2fd8')};
   }
-`; 
+`;

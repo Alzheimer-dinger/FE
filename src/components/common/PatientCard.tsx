@@ -15,7 +15,7 @@ interface PatientCardProps {
 
 /**
  * PatientCard - 환자/보호자 카드 컴포넌트
- * 
+ *
  * @param name - 이름
  * @param role - 역할 (환자/보호자)
  * @param id - ID
@@ -35,7 +35,7 @@ const PatientCard: React.FC<PatientCardProps> = ({
   onDisconnect,
   onReconnect,
   onAccept,
-  onReject
+  onReject,
 }) => {
   const statusMap = {
     connected: { label: '연결됨', color: '#B6F3D1', text: '#1B8E4B' },
@@ -92,14 +92,13 @@ const PatientCard: React.FC<PatientCardProps> = ({
 
 export default PatientCard;
 
-// Styled Components
 const Card = styled.div`
   display: flex;
   align-items: center;
   padding: 16px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
 `;
 
@@ -194,7 +193,7 @@ const ActionBtn = styled.button`
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.2s;
-  
+
   &:hover {
     background: #e0e0e0;
   }
@@ -210,7 +209,7 @@ const AcceptBtn = styled.button`
   cursor: pointer;
   margin-right: 8px;
   transition: background 0.2s;
-  
+
   &:hover {
     background: #45a049;
   }
@@ -225,8 +224,8 @@ const RejectBtn = styled.button`
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.2s;
-  
+
   &:hover {
     background: #da190b;
   }
-`; 
+`;
