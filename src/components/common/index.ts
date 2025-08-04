@@ -13,9 +13,6 @@ export { default as Input } from './Input';
 // Layout
 export { default as ContentContainer } from './ContentContainer';
 export { default as Modal } from './Modal';
-export { default as SettingItem } from './SettingItem';
-export { default as TabMenu } from './TabMenu';
-export { default as PatientCard } from './PatientCard';
 
 // etc
 export { default as ScrollToTop } from './ScrollToTop';

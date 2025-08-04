@@ -42,7 +42,7 @@ const statusMap = {
 
 type StatusType = keyof typeof statusMap;
 
-const PatientGuardianManagePage = () => {
+const PatientGuardianManage = () => {
   const [tab, setTab] = useState<'전체' | '보호자' | '환자'>('전체');
   const [showAddModal, setShowAddModal] = useState(false);
   const [addId, setAddId] = useState('');
@@ -222,7 +222,7 @@ const PatientGuardianManagePage = () => {
   );
 };
 
-export default PatientGuardianManagePage;
+export default PatientGuardianManage;
 
 const Wrapper = styled.div`
   min-height: 100vh;

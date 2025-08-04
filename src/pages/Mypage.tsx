@@ -3,14 +3,12 @@ import {
   BottomNav,
   DefaultHeader,
   ContentContainer,
-  SettingItem,
-} from '@components/common/index';
-import {
   ProfileImageModal,
   TimePickerModal,
   FeedbackModal,
   LogoutModal,
-} from '@components/modal/index';
+  SettingItem,
+} from '@components/index';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -88,7 +86,7 @@ const Mypage = () => {
       } else {
         alert('피드백 전송에 실패했습니다.');
       }
-    } catch (error) {
+    } catch {
       alert('피드백 전송에 실패했습니다.');
     }
   };

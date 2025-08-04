@@ -11,14 +11,9 @@
 import styled from 'styled-components';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  BackHeader,
-  ContentContainer,
-  Button,
-  Input,
-} from '@components/common/index';
+import { BackHeader, ContentContainer, Button, Input } from '@components/index';
 
-const ProfileEditPage = () => {
+const ProfileEdit = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '홍길동',
@@ -168,7 +163,7 @@ const ProfileEditPage = () => {
   );
 };
 
-export default ProfileEditPage;
+export default ProfileEdit;
 
 const Container = styled.div`
   display: flex;

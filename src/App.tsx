@@ -1,9 +1,4 @@
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   Login,
@@ -11,10 +6,10 @@ import {
   Role,
   Signup,
   Call,
+  Report,
   Mypage,
-  ReportPage,
-  ProfileEditPage,
-  PatientGuardianManagePage,
+  ProfileEdit,
+  PatientGuardianManage,
 } from '@pages/index';
 import { ScrollToTop } from '@components/common/index';
 
@@ -33,13 +28,12 @@ const App = () => (
         <Route path="/call" element={<Call />} />
 
         {/* Report */}
-        <Route path="/report" element={<ReportPage />} />
-        <Route path="*" element={<Navigate to="/report" replace />} />
+        <Route path="/report" element={<Report />} />
 
         {/* MyPage */}
         <Route path="/mypage" element={<Mypage />} />
-        <Route path="/mypage/edit" element={<ProfileEditPage />} />
-        <Route path="/manage" element={<PatientGuardianManagePage />} />
+        <Route path="/mypage/edit" element={<ProfileEdit />} />
+        <Route path="/manage" element={<PatientGuardianManage />} />
       </Routes>
     </Container>
   </Router>
