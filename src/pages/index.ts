@@ -8,9 +8,9 @@ export { default as Signup } from './init/Signup';
 export { default as Call } from './Call';
 
 // report
-export { default as Report } from './Report';
+export { default as Report } from './report/Report';
 
 // mypage
-export { default as Mypage } from './Mypage';
-export { default as ProfileEdit } from './ProfileEdit';
-export { default as PatientGuardianManage } from './PatientGuardianManage';
+export { default as Mypage } from './mypage/Mypage';
+export { default as ProfileEdit } from './mypage/ProfileEdit';
+export { default as PatientGuardianManage } from './mypage/PatientGuardianManage';
