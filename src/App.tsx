@@ -8,6 +8,8 @@ import {
   Call,
   Report,
   Mypage,
+  ProfileEdit,
+  PatientGuardianManage,
   RecordDetail,
   CallWaiting,
   CallActive,
@@ -41,6 +43,8 @@ const App = () => {
 
           {/* MyPage */}
           <Route path="/mypage" element={<Mypage />} />
+          <Route path="/mypage/edit" element={<ProfileEdit />} />
+          <Route path="/manage" element={<PatientGuardianManage />} />
         </Routes>
       </Container>
     </Router>

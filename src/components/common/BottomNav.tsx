@@ -7,12 +7,17 @@ import { PiPhoneCallFill } from 'react-icons/pi';
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState(
-    location.pathname.substring(1) || 'call',
-  );
+  const [activeTab, setActiveTab] = useState('call');
 
   useEffect(() => {
-    setActiveTab(location.pathname.substring(1) || 'call');
+    const currentPath = location.pathname;
+    if (currentPath.startsWith('/report')) {
+      setActiveTab('report');
+    } else if (currentPath.startsWith('/mypage')) {
+      setActiveTab('mypage');
+    } else {
+      setActiveTab('call');
+    }
   }, [location.pathname]);
 
   const handleNavClick = (tab: string, path: string) => {
