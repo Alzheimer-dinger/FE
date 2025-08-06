@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import Picker from 'react-mobile-picker';
+import { Button } from '@components/index';
 
 interface TimePickerModalProps {
   isOpen: boolean;
@@ -72,8 +73,8 @@ const TimePickerModal = ({
           선택된 시간 : {timeValue.period} {timeValue.hour}:{timeValue.minute}
         </SelectedTimeText>
         <TimeModalButtonRow>
-          <TimeModalButton onClick={onConfirm}>선택</TimeModalButton>
-          <TimeModalButtonGray onClick={onCancel}>해제</TimeModalButtonGray>
+          <Button buttonText="선택" type="default" onClick={onConfirm} />
+          <Button buttonText="해제" type="sub" onClick={onCancel} />
         </TimeModalButtonRow>
       </TimeModalContent>
     </TimeModalOverlay>
@@ -99,12 +100,14 @@ const TimeModalOverlay = styled.div`
 const TimeModalContent = styled.div`
   background: #fff;
   border-radius: 20px;
-  padding: 32px 24px 24px 24px;
-  min-width: 260px;
+  padding: 24px;
+  width: 100%;
+  max-width: 320px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 `;
 
 const SelectedTimeText = styled.div`
@@ -117,30 +120,6 @@ const TimeModalButtonRow = styled.div`
   display: flex;
   gap: 12px;
   width: 100%;
-`;
-
-const TimeModalButton = styled.button`
-  flex: 1;
-  background: #6c3cff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-`;
-
-const TimeModalButtonGray = styled.button`
-  flex: 1;
-  background: #f5f5f5;
-  color: #666;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
 `;
 
 const PickerColumnWrapper = styled.div`

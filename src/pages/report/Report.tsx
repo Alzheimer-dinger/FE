@@ -17,7 +17,7 @@ const Report = () => {
   return (
     <Container>
       <DefaultHeader showIcon={false} />
-      <ContentContainer>
+      <ContentContainer navMargin={true}>
         {/* Tab Menu */}
         <TabMenu tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 

@@ -13,6 +13,7 @@ interface InputProps {
   // eslint-disable-next-line no-unused-vars
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   style?: React.CSSProperties;
+  readOnly?: boolean;
 }
 
 /**
@@ -26,6 +27,7 @@ interface InputProps {
  * onChange: input 변경 시 실행되는 함수
  * onEnterPress: Enter 키 눌렀을 때 실행되는 함수 (선택)
  * style: 인라인 스타일 객체 (선택)
+ * readOnly: 읽기 전용 여부 (선택)
  */
 
 const Input = ({
@@ -38,6 +40,7 @@ const Input = ({
   onEnterPress,
   onChange,
   style,
+  readOnly,
 }: InputProps) => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && onEnterPress) {
@@ -55,6 +58,7 @@ const Input = ({
       onChange={onChange}
       onKeyDown={handleKeyDown}
       style={style}
+      readOnly={readOnly}
     />
   );
 };

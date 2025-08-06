@@ -37,8 +37,8 @@ const TabContainer = styled.div`
   display: flex;
   background: #f5f5f5;
   border-radius: 999px;
-  margin: 0 20px 20px 20px;
   padding: 4px;
+  width: 80%;
 `;
 
 const TabButton = styled.button<{ $active: boolean }>`

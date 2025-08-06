@@ -11,7 +11,13 @@
 import styled from 'styled-components';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BackHeader, ContentContainer, Button, Input } from '@components/index';
+import {
+  BackHeader,
+  ContentContainer,
+  Button,
+  Input,
+  GenderButton,
+} from '@components/index';
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
@@ -25,11 +31,13 @@ const ProfileEdit = () => {
 
   const [currentPasswordError, setCurrentPasswordError] = useState('');
   const [newPasswordError, setNewPasswordError] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | null>(null);
 
   const isFormValid =
     formData.name.trim() !== '' &&
     formData.currentPassword.trim() !== '' &&
     formData.newPassword.trim() !== '' &&
+    gender !== null &&
     !currentPasswordError &&
     !newPasswordError;
 
@@ -45,13 +53,6 @@ const ProfileEdit = () => {
     } else if (field === 'newPassword') {
       setNewPasswordError('');
     }
-  };
-
-  const handleGenderSelect = (gender: 'male' | 'female') => {
-    setFormData(prev => ({
-      ...prev,
-      gender,
-    }));
   };
 
   const validatePasswords = () => {
@@ -87,9 +88,6 @@ const ProfileEdit = () => {
     <Container>
       <BackHeader title="프로필 수정" />
       <ContentContainer>
-        <Title>프로필 수정</Title>
-        <Subtitle>변경하고 싶은 정보를 수정해주세요</Subtitle>
-
         <Form>
           <Label>이름</Label>
           <Input
@@ -130,33 +128,35 @@ const ProfileEdit = () => {
             inputType="text"
             className="readonly"
             onChange={() => {}}
+            readOnly
           />
 
           <Label>성별</Label>
           <GenderContainer>
             <GenderButton
-              selected={formData.gender === 'male'}
-              onClick={() => handleGenderSelect('male')}
-            >
-              <GenderIcon>👨🏻</GenderIcon>
-              <GenderText>남성</GenderText>
-            </GenderButton>
+              selected={gender === 'male'}
+              color="blue"
+              label="남성"
+              emoji="👨🏻"
+              onClick={() => setGender('male')}
+            />
             <GenderButton
-              selected={formData.gender === 'female'}
-              onClick={() => handleGenderSelect('female')}
-            >
-              <GenderIcon>👩🏻</GenderIcon>
-              <GenderText>여성</GenderText>
-            </GenderButton>
+              selected={gender === 'female'}
+              color="pink"
+              label="여성"
+              emoji="👩🏻"
+              onClick={() => setGender('female')}
+            />
           </GenderContainer>
         </Form>
 
         <Button
-          type="default"
+          type="main"
           buttonText="수정 완료"
           isDisabled={!isFormValid}
           bgColor={isFormValid ? '#6a1b9a' : '#d9d9d9'}
           onClick={handleSubmit}
+          style={{ marginTop: '1.5rem' }}
         />
       </ContentContainer>
     </Container>
@@ -171,26 +171,10 @@ const Container = styled.div`
   width: 100%;
 `;
 
-const Title = styled.h2`
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #6a1b9a;
-  text-align: center;
-  margin: 1rem 0 0 0;
-`;
-
-const Subtitle = styled.p`
-  font-size: 0.9rem;
-  color: #a1a1a1;
-  text-align: center;
-  margin: 0;
-`;
-
 const Form = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin: 1rem 0 2rem 0;
 `;
 
 const Label = styled.p`
@@ -205,36 +189,6 @@ const GenderContainer = styled.div`
   width: 100%;
   justify-content: center;
   gap: 1.5rem;
-`;
-
-const GenderButton = styled.button<{ selected: boolean }>`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  border: 2px solid ${({ selected }) => (selected ? '#6a1b9a' : '#e0e0e0')};
-  border-radius: 8px;
-  background: ${({ selected }) => (selected ? '#f3e8fd' : 'white')};
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    border-color: #6a1b9a;
-    background: #f3e8fd;
-  }
-`;
-
-const GenderIcon = styled.div`
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-`;
-
-const GenderText = styled.span`
-  font-size: 0.9rem;
-  color: #343a40;
-  font-weight: 500;
 `;
 
 const ErrorText = styled.p`
