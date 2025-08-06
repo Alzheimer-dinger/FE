@@ -38,6 +38,7 @@ const ItemContainer = styled.div`
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
   transition: background-color 0.2s;
+  box-sizing: border-box;
 
   &:hover {
     background-color: #f8f9fa;

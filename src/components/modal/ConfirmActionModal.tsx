@@ -64,13 +64,14 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: #fff;
   border-radius: 20px;
-  padding: 24px 20px 20px 20px;
-  width: 90%;
+  padding: 24px;
+  width: 100%;
   max-width: 320px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 `;
 
 const ModalTitle = styled.h2`

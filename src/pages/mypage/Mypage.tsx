@@ -106,7 +106,7 @@ const Mypage = () => {
   return (
     <Container>
       <DefaultHeader showIcon={false} />
-      <ContentContainer>
+      <ContentContainer navMargin={true}>
         <ProfileSection>
           <ProfileImage onClick={handleProfileImageClick}>
             {profileImage.startsWith('data:image') ? (
@@ -250,6 +250,7 @@ const Container = styled.div`
 `;
 
 const ProfileSection = styled.div`
+  width: 100%;
   background: white;
   border-radius: 16px;
   padding: 24px;
@@ -258,6 +259,7 @@ const ProfileSection = styled.div`
   align-items: center;
   gap: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 `;
 
 const ProfileImage = styled.div`
@@ -313,10 +315,12 @@ const ProfileEmail = styled.p`
 `;
 
 const SettingsList = styled.div`
+  width: 100%;
   background: white;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 `;
 
 const ToggleSwitch = styled.div<{ $on: boolean }>`

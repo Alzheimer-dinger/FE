@@ -1,3 +1,4 @@
+import { Button } from '@components/index';
 import styled from 'styled-components';
 
 interface FeedbackModalProps {
@@ -50,7 +51,7 @@ const FeedbackModal = ({
           value={feedbackReason}
           onChange={e => onReasonChange(e.target.value)}
         />
-        <FeedbackSubmitBtn onClick={onSubmit}>제출</FeedbackSubmitBtn>
+        <Button buttonText="제출" type="default" onClick={onSubmit} />
       </ModalContent>
     </ModalOverlay>
   );
@@ -75,13 +76,14 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: #fff;
   border-radius: 20px;
-  padding: 24px 20px 20px 20px;
-  width: 90%;
+  padding: 24px;
+  width: 100%;
   max-width: 320px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 `;
 
 const ModalTitle = styled.h2`
@@ -95,15 +97,15 @@ const RatingContainer = styled.div`
   display: flex;
   justify-content: space-between;
   margin: 12px 0;
-  gap: 4px;
   width: 100%;
+  box-sizing: border-box;
 `;
 
 const RatingEmoji = styled.div<{ $selected: boolean }>`
   font-size: 2rem;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 50%;
+  padding: 6px 0;
+  border-radius: 1rem;
   background: ${({ $selected }) => ($selected ? '#f3e8fd' : 'transparent')};
   border: 2px solid
     ${({ $selected }) => ($selected ? '#6c3cff' : 'transparent')};
@@ -134,22 +136,11 @@ const FeedbackTextarea = styled.textarea`
   padding: 10px;
   font-size: 0.95rem;
   resize: vertical;
-  margin-bottom: 16px;
+  margin-bottom: 2rem;
+  box-sizing: border-box;
 
   &:focus {
     outline: none;
     border-color: #6c3cff;
   }
-`;
-
-const FeedbackSubmitBtn = styled.button`
-  width: 100%;
-  background: #6c3cff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
 `;

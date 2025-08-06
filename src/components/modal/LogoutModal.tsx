@@ -1,3 +1,4 @@
+import { Button } from '@components/index';
 import styled from 'styled-components';
 
 interface LogoutModalProps {
@@ -14,10 +15,8 @@ const LogoutModal = ({ isOpen, onClose, onConfirm }: LogoutModalProps) => {
       <ModalContent onClick={e => e.stopPropagation()}>
         <ModalTitle>로그아웃 하시겠습니까?</ModalTitle>
         <LogoutButtonContainer>
-          <LogoutButton onClick={onConfirm}>네</LogoutButton>
-          <LogoutButton secondary onClick={onClose}>
-            아니오
-          </LogoutButton>
+          <Button buttonText="네" type="default" onClick={onConfirm} />
+          <Button buttonText="아니오" type="sub" onClick={onClose} />
         </LogoutButtonContainer>
       </ModalContent>
     </ModalOverlay>
@@ -43,13 +42,14 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: #fff;
   border-radius: 20px;
-  padding: 24px 20px 20px 20px;
-  width: 90%;
+  padding: 24px;
+  width: 100%;
   max-width: 320px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 `;
 
 const ModalTitle = styled.h2`
@@ -64,21 +64,4 @@ const LogoutButtonContainer = styled.div`
   gap: 12px;
   width: 100%;
   margin-top: 20px;
-`;
-
-const LogoutButton = styled.button<{ secondary?: boolean }>`
-  flex: 1;
-  background: ${({ secondary }) => (secondary ? '#f5f5f5' : '#6c3cff')};
-  color: ${({ secondary }) => (secondary ? '#666' : 'white')};
-  border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: ${({ secondary }) => (secondary ? '#e0e0e0' : '#5a2fd8')};
-  }
 `;
