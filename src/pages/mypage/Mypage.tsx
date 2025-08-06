@@ -106,7 +106,7 @@ const Mypage = () => {
   return (
     <Container>
       <DefaultHeader showIcon={false} />
-      <ContentContainer>
+      <ContentContainer navMargin={true}>
         <ProfileSection>
           <ProfileImage onClick={handleProfileImageClick}>
             {profileImage.startsWith('data:image') ? (
