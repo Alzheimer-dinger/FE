@@ -8,6 +8,11 @@ import {
   Call,
   Report,
   Mypage,
+  ProfileEdit,
+  PatientGuardianManage,
+  RecordDetail,
+  CallWaiting,
+  CallActive,
 } from '@pages/index';
 import { ScrollToTop } from '@components/common/index';
 import { useFCM } from '@hooks/useFCM';
@@ -29,12 +34,17 @@ const App = () => {
 
           {/* Call */}
           <Route path="/call" element={<Call />} />
+          <Route path="/call-detail/:date" element={<RecordDetail />} />
+          <Route path="/call-waiting" element={<CallWaiting />} />
+          <Route path="/call-active" element={<CallActive />} />
 
           {/* Report */}
           <Route path="/report" element={<Report />} />
 
           {/* MyPage */}
           <Route path="/mypage" element={<Mypage />} />
+          <Route path="/mypage/edit" element={<ProfileEdit />} />
+          <Route path="/manage" element={<PatientGuardianManage />} />
         </Routes>
       </Container>
     </Router>
