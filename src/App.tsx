@@ -3,41 +3,53 @@ import styled from 'styled-components';
 import {
   Login,
   SignupTerms,
-  Role,
+  SignupRole,
   Signup,
   Call,
   Report,
   Mypage,
   ProfileEdit,
   PatientGuardianManage,
+  RecordDetail,
+  CallWaiting,
+  CallActive,
 } from '@pages/index';
 import { ScrollToTop } from '@components/common/index';
+import { useFCM } from '@hooks/useFCM';
 
-const App = () => (
-  <Router>
-    <Container>
-      <ScrollToTop />
-      <Routes>
-        {/* Init */}
-        <Route path="/" element={<Login />} />
-        <Route path="/signup-terms" element={<SignupTerms />} />
-        <Route path="/signup-role" element={<Role />} />
-        <Route path="/signup" element={<Signup />} />
+const App = () => {
+  // FCM 알림 권한 요청 + 토큰 발급 + 메시지 수신
+  useFCM();
 
-        {/* Call */}
-        <Route path="/call" element={<Call />} />
+  return (
+    <Router>
+      <Container>
+        <ScrollToTop />
+        <Routes>
+          {/* Init */}
+          <Route path="/" element={<Login />} />
+          <Route path="/signup-terms" element={<SignupTerms />} />
+          <Route path="/signup-role" element={<SignupRole />} />
+          <Route path="/signup" element={<Signup />} />
 
-        {/* Report */}
-        <Route path="/report" element={<Report />} />
+          {/* Call */}
+          <Route path="/call" element={<Call />} />
+          <Route path="/call-detail/:date" element={<RecordDetail />} />
+          <Route path="/call-waiting" element={<CallWaiting />} />
+          <Route path="/call-active" element={<CallActive />} />
 
-        {/* MyPage */}
-        <Route path="/mypage" element={<Mypage />} />
-        <Route path="/mypage/edit" element={<ProfileEdit />} />
-        <Route path="/manage" element={<PatientGuardianManage />} />
-      </Routes>
-    </Container>
-  </Router>
-);
+          {/* Report */}
+          <Route path="/report" element={<Report />} />
+
+          {/* MyPage */}
+          <Route path="/mypage" element={<Mypage />} />
+          <Route path="/mypage/edit" element={<ProfileEdit />} />
+          <Route path="/manage" element={<PatientGuardianManage />} />
+        </Routes>
+      </Container>
+    </Router>
+  );
+};
 
 export default App;
 

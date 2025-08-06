@@ -77,10 +77,10 @@ export const InputBox = styled.input`
     border: 1px solid #d9d9d9;
     color: #000;
     border-radius: 0.5rem;
-    padding: 0.8rem;
+    padding: 0.9rem;
 
     &::placeholder {
-      color: #d9d9d9;
+      color: #a1a1a1;
     }
   }
 `;

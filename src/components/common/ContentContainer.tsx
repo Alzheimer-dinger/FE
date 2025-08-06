@@ -1,12 +1,20 @@
 import styled from 'styled-components';
 
-const ContentContainer = styled.div`
+interface ContentContainerProps {
+  navMargin?: boolean;
+}
+
+const ContentContainer = styled.div.withConfig({
+  shouldForwardProp: prop => prop !== 'navMargin',
+})<ContentContainerProps>`
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100%;
+  align-items: center;
   gap: 1rem;
-  padding: 1.6rem 1.4rem;
-  margin-bottom: 70px;
+  padding: 2rem;
+  margin-bottom: ${({ navMargin }) => (navMargin ? '70px' : '0')};
   overflow-y: auto;
   box-sizing: border-box;
 

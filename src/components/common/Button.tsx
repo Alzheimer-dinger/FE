@@ -4,7 +4,7 @@ import styled from 'styled-components';
 interface ButtonProps {
   onClick?: () => void;
   buttonText: string;
-  type?: 'default' | 'sub';
+  type?: 'default' | 'sub' | 'main';
   className?: string;
   isDisabled?: boolean;
   style?: React.CSSProperties;
@@ -48,7 +48,9 @@ const Button = ({
 
 export default Button;
 
-const ButtonContainer = styled.button<{ bgColor?: string; txtColor?: string }>`
+const ButtonContainer = styled.button.withConfig({
+  shouldForwardProp: prop => !['bgColor', 'txtColor'].includes(prop),
+})<{ bgColor?: string; txtColor?: string }>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -70,6 +72,16 @@ const ButtonContainer = styled.button<{ bgColor?: string; txtColor?: string }>`
     background-color: #d9d9d9;
     color: #fff;
     font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.8rem 0;
+  }
+
+  &.main {
+    width: 100%;
+    background-color: ${({ bgColor }) => bgColor || '#6a1b9a'};
+    color: #fff;
+    font-size: 0.9rem;
     font-weight: 500;
     border-radius: 0.5rem;
     padding: 0.8rem 0;
