@@ -61,7 +61,6 @@ const GraphSection = styled.div`
   border: 1px solid #d7d7d7;
   border-radius: 12px;
   padding: 1rem;
-  margin: 1rem 0;
 `;
 
 const GraphHeader = styled.div`
@@ -129,7 +128,6 @@ const ResultBox = styled.div`
   border: 1px solid #e9ecef;
   border-radius: 8px;
   padding: 1rem;
-  margin: 1rem 0;
   font-size: 0.9rem;
   color: #666;
   line-height: 1.5;

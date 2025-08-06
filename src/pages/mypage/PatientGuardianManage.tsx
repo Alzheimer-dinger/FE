@@ -1,7 +1,13 @@
 import styled from 'styled-components';
-import BackHeader from '@components/common/Header/BackHeader';
 import { useState } from 'react';
-import { IoPersonOutline } from 'react-icons/io5';
+import {
+  BackHeader,
+  ContentContainer,
+  AddPatientModal,
+  ConfirmActionModal,
+  TabMenu,
+} from '@components/index';
+import { GoPlus } from 'react-icons/go';
 
 const dummyList = [
   {
@@ -56,21 +62,17 @@ const PatientGuardianManage = () => {
     tab === '전체' ? dummyList : dummyList.filter(item => item.role === tab);
 
   return (
-    <Wrapper>
+    <Container>
       <BackHeader title="보호자/환자 관리" />
-      <Content>
+      <ContentContainer>
+        <TabMenu
+          tabs={['전체', '보호자', '환자']}
+          activeTab={tab}
+          onTabChange={selectedTab =>
+            setTab(selectedTab as '전체' | '보호자' | '환자')
+          }
+        />
         <OuterBox>
-          <TabBar>
-            {['전체', '보호자', '환자'].map(t => (
-              <TabBtn
-                key={t}
-                $active={tab === t}
-                onClick={() => setTab(t as any)}
-              >
-                {t}
-              </TabBtn>
-            ))}
-          </TabBar>
           <CardList>
             {filteredList.map((item, idx) =>
               item.status === 'pending' ? (
@@ -153,148 +155,70 @@ const PatientGuardianManage = () => {
             )}
           </CardList>
         </OuterBox>
-        <FloatingBtn onClick={() => setShowAddModal(true)}>＋</FloatingBtn>
-      </Content>
+        <FloatingBtn onClick={() => setShowAddModal(true)}>
+          <GoPlus />
+        </FloatingBtn>
+      </ContentContainer>
       {/* 환자 추가 모달 */}
       {showAddModal && (
-        <ModalOverlay onClick={() => setShowAddModal(false)}>
-          <ModalContent onClick={e => e.stopPropagation()}>
-            <ModalTitle>환자 추가</ModalTitle>
-            <InputBox $error={!!addError}>
-              <IoPersonOutline
-                size={28}
-                color={addError ? '#e53935' : '#bbb'}
-                style={{ marginRight: 8 }}
-              />
-              <AddInput
-                placeholder="환자 ID를 입력하세요"
-                value={addId}
-                onChange={e => {
-                  setAddId(e.target.value);
-                  setAddError('');
-                }}
-              />
-            </InputBox>
-            {addError && <ErrorMsg>{addError}</ErrorMsg>}
-            <AddBtn
-              onClick={() => {
-                // 예시: 8자리 숫자만 유효
-                if (!/^\d{8}$/.test(addId)) {
-                  setAddError('유효하지 않은 ID입니다.');
-                  return;
-                }
-                setShowAddModal(false);
-                setAddId('');
-                setAddError('');
-              }}
-            >
-              추가하기
-            </AddBtn>
-          </ModalContent>
-        </ModalOverlay>
+        <AddPatientModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          patientId={addId}
+          error={addError}
+          onPatientIdChange={id => {
+            setAddId(id);
+            setAddError('');
+          }}
+          onAdd={() => {
+            if (!/^\d{8}$/.test(addId)) {
+              setAddError('유효하지 않은 ID입니다.');
+              return;
+            }
+            setShowAddModal(false);
+            setAddId('');
+            setAddError('');
+          }}
+        />
       )}
       {/* 해제/재연결 확인 모달 */}
       {confirmModal && (
-        <ModalOverlay onClick={() => setConfirmModal(null)}>
-          <ModalContent onClick={e => e.stopPropagation()}>
-            <ModalTitle style={{ marginBottom: 32 }}>
-              {confirmModal.type === 'disconnect'
-                ? '연결을 해제하시겠습니까?'
-                : '재연결 하시겠습니까?'}
-            </ModalTitle>
-            <ConfirmBtnRow>
-              <ConfirmBtn
-                onClick={() => {
-                  // 실제 해제/재연결 로직은 여기에 (더미)
-                  setConfirmModal(null);
-                }}
-              >
-                네
-              </ConfirmBtn>
-              <ConfirmBtnGray onClick={() => setConfirmModal(null)}>
-                아니요
-              </ConfirmBtnGray>
-            </ConfirmBtnRow>
-          </ModalContent>
-        </ModalOverlay>
+        <ConfirmActionModal
+          isOpen={!!confirmModal}
+          actionType={confirmModal.type}
+          onConfirm={() => {
+            // 해제 또는 재연결 처리
+            setConfirmModal(null);
+          }}
+          onClose={() => setConfirmModal(null)}
+        />
       )}
-    </Wrapper>
+    </Container>
   );
 };
 
 export default PatientGuardianManage;
 
-const Wrapper = styled.div`
-  min-height: 100vh;
-  background: #fff;
-  width: 100vw;
-  max-width: 425px;
-  min-width: 320px;
-  margin: 0 auto;
-`;
-
-const Content = styled.div`
+const Container = styled.div`
+  display: flex;
   width: 100%;
-  max-width: 425px;
-  min-width: 320px;
-  margin: 0 auto;
-  padding: 0 0 40px 0;
+  flex-direction: column;
 `;
 
 const OuterBox = styled.div`
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
-  padding: 18px 0 18px 0;
-  margin: 0 auto 24px auto;
+  margin: 0 1rem;
   width: 100%;
-  max-width: 400px;
-`;
-
-const TabBar = styled.div`
-  display: flex;
-  background: #f5f5f5;
-  border-radius: 999px;
-  margin: 24px auto 16px auto;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  padding: 4px 6px;
-  width: 90%;
-  max-width: 340px;
-  min-width: 220px;
-  align-items: center;
-`;
-
-const TabBtn = styled.button<{ $active?: boolean }>`
-  flex: 1;
-  border: none;
-  border-radius: 999px;
-  background: ${({ $active }) => ($active ? '#6c3cff' : 'transparent')};
-  color: ${({ $active }) => ($active ? '#fff' : '#222')};
-  font-weight: 600;
-  font-size: 1.1rem;
-  width: 70px;
-  height: 38px;
-  min-width: 60px;
-  min-height: 32px;
-  padding: 0;
-  margin: 0 2px;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: none;
+  box-sizing: border-box;
 `;
 
 const CardList = styled.div`
   margin-top: 8px;
-  width: 95%;
-  max-width: 380px;
-  min-width: 280px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 1rem;
 `;
 
 const Card = styled.div`
@@ -305,6 +229,8 @@ const Card = styled.div`
   margin-bottom: 18px;
   padding: 18px 18px 12px 18px;
   align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const CardLeft = styled.div`
@@ -409,113 +335,6 @@ const FloatingBtn = styled.button`
   justify-content: center;
   cursor: pointer;
   z-index: 100;
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.18);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const ModalContent = styled.div`
-  background: #fff;
-  border-radius: 20px;
-  padding: 32px 24px 24px 24px;
-  min-width: 320px;
-  max-width: 90vw;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const ModalTitle = styled.h2`
-  font-size: 1.3rem;
-  color: #222;
-  margin-bottom: 24px;
-`;
-
-const InputBox = styled.div<{ $error?: boolean }>`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  background: #fafafa;
-  border-radius: 12px;
-  border: 2px solid ${({ $error }) => ($error ? '#e53935' : '#eee')};
-  padding: 10px 16px;
-  margin-bottom: 8px;
-`;
-
-const AddInput = styled.input`
-  border: none;
-  background: transparent;
-  font-size: 1.1rem;
-  flex: 1;
-  outline: none;
-  color: #222;
-  &::placeholder {
-    color: #bbb;
-  }
-`;
-
-const ErrorMsg = styled.div`
-  color: #e53935;
-  font-size: 0.98rem;
-  margin-bottom: 12px;
-  width: 100%;
-`;
-
-const AddBtn = styled.button`
-  width: auto;
-  min-width: 120px;
-  background: #6c3cff;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 8px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 8px auto 0 auto;
-  display: block;
-  cursor: pointer;
-`;
-
-const ConfirmBtnRow = styled.div`
-  display: flex;
-  gap: 16px;
-  width: 100%;
-  margin-top: 8px;
-`;
-
-const ConfirmBtn = styled.button`
-  flex: 1;
-  background: #6c3cff;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-`;
-
-const ConfirmBtnGray = styled.button`
-  flex: 1;
-  background: #f5f5f5;
-  color: #aaa;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
 `;
 
 const NBadge = styled.div`
