@@ -1,3 +1,4 @@
+import { Button } from '@components/index';
 import styled from 'styled-components';
 
 interface ProfileImageModalProps {
@@ -28,8 +29,13 @@ const ProfileImageModal = ({
             )}
           </ModalImage>
         </ModalImageContainer>
-        <ModalButton onClick={onImageSelect}>사진 선택하기</ModalButton>
-        <ModalCancelButton onClick={onClose}>취소</ModalCancelButton>
+        <Button
+          buttonText="사진 선택하기"
+          type="default"
+          onClick={onImageSelect}
+          style={{ marginBottom: '0.5rem' }}
+        />
+        <Button buttonText="취소" type="sub" onClick={onClose} />
       </ModalContent>
     </ModalOverlay>
   );
@@ -54,13 +60,14 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: #fff;
   border-radius: 20px;
-  padding: 24px 20px 20px 20px;
-  width: 90%;
+  padding: 24px;
+  width: 100%;
   max-width: 320px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 `;
 
 const ModalTitle = styled.h2`
@@ -92,35 +99,4 @@ const ProfileImgTag = styled.img`
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-`;
-
-const ModalButton = styled.button`
-  background: #6c3cff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-bottom: 12px;
-  width: 100%;
-
-  &:hover {
-    background: #5a2fd8;
-  }
-`;
-
-const ModalCancelButton = styled.button`
-  background: #f5f5f5;
-  color: #666;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  cursor: pointer;
-  width: 100%;
-
-  &:hover {
-    background: #e0e0e0;
-  }
 `;
