@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getToken, onMessage } from 'firebase/messaging';
 import { messaging } from '@utils/firebase';
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
 export const useFCM = () => {
+  const [fcmToken, setFcmToken] = useState<string | null>(null);
+
   useEffect(() => {
     // 서비스워커 등록
     navigator.serviceWorker
@@ -23,7 +25,7 @@ export const useFCM = () => {
               .then(token => {
                 if (token) {
                   console.log('FCM Token:', token);
-                  // 서버로 토큰 전송 api 추가
+                  setFcmToken(token);
                 } else {
                   console.warn('No token available');
                 }
@@ -38,9 +40,10 @@ export const useFCM = () => {
         console.error('Service Worker registration failed:', err);
       });
 
-    //  앱이 열린 상태에서 수신한 메시지 처리
     onMessage(messaging, payload => {
       console.log('Foreground FCM message:', payload);
     });
   }, []);
+
+  return fcmToken;
 };

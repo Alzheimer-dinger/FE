@@ -15,3 +15,4 @@ export { default as Modal } from './Modal';
 
 // etc
 export { default as ScrollToTop } from './ScrollToTop';
+export { default as ProtectedRoute } from './ProtectedRoute';

@@ -5,7 +5,7 @@
  * - 사용자가 이름, 이메일, 비밀번호, 성별, 환자 코드(보호자만) 입력 필드
  * - 환자 코드 입력은 보호자 역할 선택 시에만 활성화
  * - 이메일 및 비밀번호 유효성 검사 포함 (utils/validation)
- * - API 연결 전 임시 데이터 console 출력
+ * - api 연동 완료
  */
 
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -32,6 +32,7 @@ const Signup = () => {
   const [patientCode, setPatientCode] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [signupError, setSingupError] = useState('');
 
   const isFormValid =
     name.trim() !== '' &&
@@ -40,7 +41,7 @@ const Signup = () => {
     gender !== null &&
     (role === 'guardian' ? patientCode.trim() !== '' : true);
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!isFormValid) return;
 
     let hasError = false;
@@ -61,15 +62,38 @@ const Signup = () => {
 
     if (hasError) return;
 
-    console.log({
+    const signupData = {
       name,
       email,
       password,
-      gender,
-      role,
-      patientCode,
-    });
-    navigate('/');
+      gender: gender === 'male' ? 'MALE' : 'FEMALE',
+      ...(role === 'guardian' && { patientCode }),
+    };
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/api/users/sign-up`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(signupData),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('회원가입 실패:', errorData);
+        setSingupError(errorData.message || '회원가입에 실패했습니다.');
+        return;
+      }
+
+      navigate('/');
+    } catch (error) {
+      console.error('회원가입 오류:', error);
+      setSingupError('회원가입 도중 오류가 발생했습니다.');
+    }
   };
 
   return (
@@ -133,9 +157,11 @@ const Signup = () => {
                 value={patientCode}
                 inputType="text"
                 onChange={e => setPatientCode(e.target.value)}
+                style={{ marginBottom: '1rem' }}
               />
             </div>
           )}
+          {signupError && <ErrorText>{signupError}</ErrorText>}
         </Form>
         <Button
           type="main"
