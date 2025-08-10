@@ -11,6 +11,7 @@ import {
 } from '@components/index';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logoutUser } from '@services/index';
 
 const Mypage = () => {
   const navigate = useNavigate();
@@ -97,10 +98,18 @@ const Mypage = () => {
     setFeedbackReason('');
   };
 
-  const handleLogout = () => {
-    // 로그아웃 로직 구현
-    console.log('로그아웃 실행');
-    // 여기에 실제 로그아웃 로직 추가
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      // 로그아웃 성공 후 초기 화면으로 이동
+      navigate('/');
+      setShowLogoutModal(false);
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+      // 에러가 발생해도 초기 화면으로 이동
+      navigate('/');
+      setShowLogoutModal(false);
+    }
   };
 
   return (
