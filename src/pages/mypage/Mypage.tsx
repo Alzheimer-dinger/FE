@@ -9,9 +9,9 @@ import {
   LogoutModal,
   SettingItem,
 } from '@components/index';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser, submitFeedback } from '@services/index';
+import { logoutUser, submitFeedback, getProfileImageUploadUrl, updateProfileImage, getReminder, setReminder } from '@services/index';
 
 const Mypage = () => {
   const navigate = useNavigate();
@@ -35,6 +35,22 @@ const Mypage = () => {
   const [showToast, setShowToast] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // 컴포넌트 마운트 시 리마인더 조회
+  useEffect(() => {
+    const fetchReminder = async () => {
+      try {
+        const reminderData = await getReminder();
+        if (reminderData) {
+          setRemindTime(reminderData.time);
+        }
+      } catch (error) {
+        console.error('리마인더 조회 실패:', error);
+      }
+    };
+
+    fetchReminder();
+  }, []);
+
   const handleProfileEditClick = () => {
     navigate('/mypage/edit');
   };
@@ -47,16 +63,49 @@ const Mypage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const result = e.target?.result as string;
-        setProfileImage(result);
-        setShowImageModal(false);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // 1. 업로드 URL 요청
+        const { uploadUrl } = await getProfileImageUploadUrl();
+        
+        // 2. 파일을 업로드 URL로 전송
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          // 3. 업로드 성공 시 응답에서 fileKey 추출 (응답 형식에 따라 조정 필요)
+          const uploadResult = await uploadResponse.json();
+          const fileKey = uploadResult.fileKey || uploadResult.key || uploadResult.id;
+          
+          if (fileKey) {
+            // 4. 프로필 이미지 업데이트 API 호출
+            await updateProfileImage(fileKey);
+            
+            // 5. UI 업데이트
+            const reader = new FileReader();
+            reader.onload = e => {
+              const result = e.target?.result as string;
+              setProfileImage(result);
+              setShowImageModal(false);
+            };
+            reader.readAsDataURL(file);
+          } else {
+            throw new Error('파일 키를 찾을 수 없습니다.');
+          }
+        } else {
+          throw new Error('파일 업로드에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('프로필 이미지 업로드 실패:', error);
+        alert('프로필 이미지 업로드에 실패했습니다.');
+      }
     }
   };
 
@@ -193,11 +242,20 @@ const Mypage = () => {
         onClose={() => setShowTimeModal(false)}
         timeValue={remindTimeValue}
         onTimeChange={setRemindTimeValue}
-        onConfirm={() => {
-          setRemindTime(
-            `${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`,
-          );
-          setShowTimeModal(false);
+        onConfirm={async () => {
+          try {
+            const timeString = `${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`;
+            
+            // 서버에 리마인더 설정
+            await setReminder(timeString);
+            
+            // UI 업데이트
+            setRemindTime(timeString);
+            setShowTimeModal(false);
+          } catch (error) {
+            console.error('리마인더 설정 실패:', error);
+            alert('리마인더 설정에 실패했습니다.');
+          }
         }}
         onCancel={() => {
           setRemindTime(null);

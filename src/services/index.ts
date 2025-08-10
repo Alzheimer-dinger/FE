@@ -62,4 +62,38 @@ export const submitFeedback = async (rating: string, reason: string): Promise<vo
   return response.data;
 };
 
+// 프로필 이미지 업로드 URL 요청 API
+export const getProfileImageUploadUrl = async (): Promise<{ uploadUrl: string }> => {
+  const response = await apiClient.get('/api/images/profile/upload-url');
+  return response.data;
+};
+
+// 프로필 이미지 업데이트 API
+export const updateProfileImage = async (fileKey: string): Promise<void> => {
+  await apiClient.post('/api/images/profile', {
+    fileKey,
+  });
+};
+
+// 리마인더 조회 API
+export const getReminder = async (): Promise<{ time: string } | null> => {
+  try {
+    const response = await apiClient.get('/api/reminder');
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      // 리마인더가 설정되지 않은 경우
+      return null;
+    }
+    throw error;
+  }
+};
+
+// 리마인더 설정 API
+export const setReminder = async (time: string): Promise<void> => {
+  await apiClient.post('/api/reminder', {
+    time,
+  });
+};
+
 export default apiClient;
