@@ -92,7 +92,8 @@ export const getReminder = async (): Promise<{ time: string } | null> => {
 // 리마인더 설정 API
 export const setReminder = async (time: string): Promise<void> => {
   await apiClient.post('/api/reminder', {
-    time,
+    fireTime: time,
+    status: time ? 'ACTIVE' : 'INACTIVE',
   });
 };
 

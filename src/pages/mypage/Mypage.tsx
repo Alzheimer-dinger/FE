@@ -40,8 +40,10 @@ const Mypage = () => {
     const fetchReminder = async () => {
       try {
         const reminderData = await getReminder();
-        if (reminderData) {
-          setRemindTime(reminderData.time);
+        if (reminderData && reminderData.status === 'ACTIVE') {
+          setRemindTime(reminderData.fireTime || reminderData.time);
+        } else {
+          setRemindTime(null);
         }
       } catch (error) {
         console.error('리마인더 조회 실패:', error);
@@ -134,6 +136,16 @@ const Mypage = () => {
     setFeedbackReason('');
   };
 
+  const handleReminderDeactivate = async () => {
+    try {
+      await setReminder(''); // 빈 문자열로 호출하여 status만 INACTIVE로 설정
+      setRemindTime(null);
+    } catch (error) {
+      console.error('리마인더 해제 실패:', error);
+      alert('리마인더 해제에 실패했습니다.');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -192,15 +204,25 @@ const Mypage = () => {
             }
           />
 
-          <SettingItem
-            icon="⏰"
-            iconBgColor="#ffebee"
-            text="리마인드 시간"
-            onClick={() => setShowTimeModal(true)}
-            rightElement={
-              remindTime && <RemindTimeText>{remindTime}</RemindTimeText>
-            }
-          />
+                     <SettingItem
+             icon="⏰"
+             iconBgColor="#ffebee"
+             text="리마인드 시간"
+             onClick={() => setShowTimeModal(true)}
+             rightElement={
+               remindTime ? (
+                 <RemindTimeContainer>
+                   <RemindTimeText>{remindTime}</RemindTimeText>
+                   <DeactivateButton onClick={(e) => {
+                     e.stopPropagation();
+                     handleReminderDeactivate();
+                   }}>
+                     해제
+                   </DeactivateButton>
+                 </RemindTimeContainer>
+               ) : null
+             }
+           />
 
           <SettingItem
             icon="🛡️"
@@ -243,13 +265,9 @@ const Mypage = () => {
         timeValue={remindTimeValue}
         onTimeChange={setRemindTimeValue}
         onConfirm={async () => {
+          const timeString = `${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`;
           try {
-            const timeString = `${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`;
-            
-            // 서버에 리마인더 설정
             await setReminder(timeString);
-            
-            // UI 업데이트
             setRemindTime(timeString);
             setShowTimeModal(false);
           } catch (error) {
@@ -398,10 +416,30 @@ const ToggleSlider = styled.div<{ $on: boolean }>`
   transition: left 0.2s;
 `;
 
+const RemindTimeContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
 const RemindTimeText = styled.span`
-  margin-left: 8px;
   color: #6c3cff;
   font-size: 0.95rem;
+`;
+
+const DeactivateButton = styled.button`
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #ff5252;
+  }
 `;
 
 const ToastMessage = styled.div`
