@@ -53,4 +53,13 @@ export const logoutUser = async (): Promise<void> => {
   }
 };
 
+// 피드백 등록 API
+export const submitFeedback = async (rating: string, reason: string): Promise<void> => {
+  const response = await apiClient.post('/api/feedback', {
+    rating,
+    reason,
+  });
+  return response.data;
+};
+
 export default apiClient;

@@ -11,7 +11,7 @@ import {
 } from '@components/index';
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser } from '@services/index';
+import { logoutUser, submitFeedback } from '@services/index';
 
 const Mypage = () => {
   const navigate = useNavigate();
@@ -67,27 +67,14 @@ const Mypage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          rating: selectedRating,
-          reason: feedbackReason,
-        }),
-      });
-
-      if (response.ok) {
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-        setShowFeedbackModal(false);
-        setSelectedRating('');
-        setFeedbackReason('');
-      } else {
-        alert('피드백 전송에 실패했습니다.');
-      }
-    } catch {
+      await submitFeedback(selectedRating, feedbackReason);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      setShowFeedbackModal(false);
+      setSelectedRating('');
+      setFeedbackReason('');
+    } catch (error) {
+      console.error('피드백 전송 실패:', error);
       alert('피드백 전송에 실패했습니다.');
     }
   };
