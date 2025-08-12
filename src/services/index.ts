@@ -97,4 +97,99 @@ export const setReminder = async (time: string): Promise<void> => {
   });
 };
 
+// 관계 관련 타입 정의
+export interface Relation {
+  counterId: string;
+  name: string;
+  patientCode: string;
+  relationType: 'GUARDIAN' | 'PATIENT';
+  createdAt: string;
+  status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  initiator: 'GUARDIAN' | 'PATIENT';
+}
+
+// 관계 요청 응답을 위한 타입 (relationId 포함)
+export interface RelationResponse {
+  relationId: string;
+  counterId: string;
+  name: string;
+  patientCode: string;
+  relationType: 'GUARDIAN' | 'PATIENT';
+  createdAt: string;
+  status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  initiator: 'GUARDIAN' | 'PATIENT';
+}
+
+export interface RelationRequest {
+  to: string;
+}
+
+export interface RelationResendRequest {
+  relationId: string;
+  to: string;
+}
+
+// 관계 목록 조회 API
+export const getRelations = async (): Promise<Relation[]> => {
+  const response = await apiClient.get('/api/relations');
+  return response.data;
+};
+
+// 관계 요청 전송 API
+export const sendRelationRequest = async (to: string): Promise<any> => {
+  const response = await apiClient.post('/api/relations/send', { to });
+  return response.data;
+};
+
+// 관계 요청 응답 API (승인/거절)
+export const replyToRelationRequest = async (counterId: string, status: 'ACCEPTED' | 'REJECTED'): Promise<void> => {
+  await apiClient.patch('/api/relations/reply', {
+    relationId: counterId, // counterId를 relationId로 사용
+    status,
+  });
+};
+
+// 관계 요청 재전송 API
+export const resendRelationRequest = async (relationId: string, to: string): Promise<any> => {
+  const response = await apiClient.post('/api/relations/resend', {
+    relationId,
+    to,
+  });
+  return response.data;
+};
+
+// 관계 해제 API
+export const deleteRelation = async (counterId: string): Promise<void> => {
+  await apiClient.delete(`/api/relations/${counterId}`); // counterId를 relationId로 사용
+};
+
+// 프로필 관련 타입 정의
+export interface UserProfile {
+  userId: string;
+  name: string;
+  email: string;
+  gender: 'MALE' | 'FEMALE';
+  imageUrl: string;
+}
+
+export interface ProfileUpdateRequest {
+  name?: string;
+  gender?: 'MALE' | 'FEMALE';
+  currentPassword?: string;
+  newPassword?: string;
+  passwordChangeValid?: boolean;
+}
+
+// 프로필 조회 API
+export const getUserProfile = async (): Promise<UserProfile> => {
+  const response = await apiClient.get('/api/users/profile');
+  return response.data;
+};
+
+// 프로필 수정 API
+export const updateUserProfile = async (profileData: ProfileUpdateRequest): Promise<UserProfile> => {
+  const response = await apiClient.patch('/api/users/profile', profileData);
+  return response.data;
+};
+
 export default apiClient;
