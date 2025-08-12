@@ -11,12 +11,11 @@ import {
 } from '@components/index';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser, submitFeedback, getProfileImageUploadUrl, updateProfileImage, getReminder, setReminder } from '@services/index';
+import { logoutUser, submitFeedback, getProfileImageUploadUrl, updateProfileImage, getReminder, setReminder, getRelations, getUserProfile } from '@services/index';
 
 const Mypage = () => {
   const navigate = useNavigate();
   const [showImageModal, setShowImageModal] = useState(false);
-  const [profileImage, setProfileImage] = useState('☁️');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [alarmOn, setAlarmOn] = useState(true);
 
@@ -35,10 +34,35 @@ const Mypage = () => {
   const [showToast, setShowToast] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // 컴포넌트 마운트 시 리마인더 조회
+  // 프로필 정보 상태
+  const [profileInfo, setProfileInfo] = useState({
+    name: '홍길동',
+    email: 'abcd1234@abc.com',
+  });
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileImage, setProfileImage] = useState('☁️'); // 기본 이미지: 구름
+
+  // 컴포넌트 마운트 시 프로필 정보 및 리마인더 조회
   useEffect(() => {
-    const fetchReminder = async () => {
+    const fetchData = async () => {
       try {
+        setProfileLoading(true);
+        
+        // 프로필 정보 조회
+        const profile = await getUserProfile();
+        setProfileInfo({
+          name: profile.name,
+          email: profile.email,
+        });
+        
+        // 프로필 이미지 설정
+        if (profile.imageUrl) {
+          setProfileImage(profile.imageUrl);
+        } else {
+          setProfileImage('☁️'); // 이미지 URL이 없으면 기본 구름
+        }
+        
+        // 리마인더 조회
         const reminderData = await getReminder();
         if (reminderData && reminderData.status === 'ACTIVE') {
           setRemindTime(reminderData.fireTime || reminderData.time);
@@ -46,11 +70,14 @@ const Mypage = () => {
           setRemindTime(null);
         }
       } catch (error) {
-        console.error('리마인더 조회 실패:', error);
+        console.error('데이터 조회 실패:', error);
+        alert('서버 연결에 실패했습니다');
+      } finally {
+        setProfileLoading(false);
       }
     };
 
-    fetchReminder();
+    fetchData();
   }, []);
 
   const handleProfileEditClick = () => {
@@ -90,7 +117,7 @@ const Mypage = () => {
             // 4. 프로필 이미지 업데이트 API 호출
             await updateProfileImage(fileKey);
             
-            // 5. UI 업데이트
+            // 5. UI 업데이트 - 업로드된 이미지 표시
             const reader = new FileReader();
             reader.onload = e => {
               const result = e.target?.result as string;
@@ -166,15 +193,15 @@ const Mypage = () => {
       <ContentContainer navMargin={true}>
         <ProfileSection>
           <ProfileImage onClick={handleProfileImageClick}>
-            {profileImage.startsWith('data:image') ? (
+            {profileImage.startsWith('http') ? (
               <ProfileImgTag src={profileImage} alt="프로필" />
             ) : (
               <ProfileCharacter>{profileImage}</ProfileCharacter>
             )}
           </ProfileImage>
           <ProfileInfo>
-            <ProfileName>홍길동</ProfileName>
-            <ProfileEmail>abcd1234@gmail.com</ProfileEmail>
+            <ProfileName>{profileInfo.name}</ProfileName>
+            <ProfileEmail>{profileInfo.email}</ProfileEmail>
           </ProfileInfo>
         </ProfileSection>
 
@@ -228,7 +255,19 @@ const Mypage = () => {
             icon="🛡️"
             iconBgColor="#e3f2fd"
             text="등록된 환자/보호자"
-            onClick={() => navigate('/manage')}
+            onClick={async () => {
+              try {
+                // 관계 목록을 미리 조회하여 상태로 저장
+                const relations = await getRelations();
+                // 관계 데이터를 로컬 스토리지나 상태로 저장하여 다음 화면에서 사용
+                localStorage.setItem('relations', JSON.stringify(relations));
+                navigate('/manage');
+              } catch (error) {
+                console.error('관계 목록 조회 실패:', error);
+                // 조회 실패해도 화면 이동
+                navigate('/manage');
+              }
+            }}
             showArrow={true}
           />
 
