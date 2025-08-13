@@ -114,9 +114,10 @@ const ProfileEdit = () => {
 
     try {
       // API 요청 데이터 준비
+      const mappedGender = (gender ?? formData.gender) === 'male' ? 'MALE' : 'FEMALE';
       const updateData: any = {
         name: formData.name,
-        gender: formData.gender === 'male' ? 'MALE' : 'FEMALE',
+        gender: mappedGender,
       };
 
       // 비밀번호 변경이 있는 경우에만 추가
