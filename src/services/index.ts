@@ -286,9 +286,9 @@ export interface ApiEnvelope<T> {
   result?: T;
 }
 
-export const sendRelationRequest = async (to: string): Promise<ApiEnvelope<string>> => {
-  console.log('[Relation][SEND][REQUEST][service] /api/relations/send', { to });
-  const response = await apiClient.post('/api/relations/send', { to });
+export const sendRelationRequest = async (patientCode: string): Promise<ApiEnvelope<string>> => {
+  console.log('[Relation][SEND][REQUEST][service] /api/relations/send', { patientCode });
+  const response = await apiClient.post('/api/relations/send', { patientCode });
   const raw = response.data as any;
   const envelope: ApiEnvelope<string> = (raw && typeof raw === 'object' && ('result' in raw || 'message' in raw))
     ? raw as ApiEnvelope<string>

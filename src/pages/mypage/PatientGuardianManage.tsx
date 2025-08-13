@@ -148,11 +148,11 @@ const PatientGuardianManage = () => {
   };
 
   // 환자 추가 (관계 요청 전송)
-  const handleAddPatient = async (patientId: string) => {
+  const handleAddPatient = async (patientCode: string) => {
     try {
-      console.log('[Relation][SEND][REQUEST] /api/relations/send', { to: patientId });
+      console.log('[Relation][SEND][REQUEST] /api/relations/send', { patientCode });
       const t0 = performance.now();
-      const sendResult = await sendRelationRequest(patientId);
+      const sendResult = await sendRelationRequest(patientCode);
       const t1 = performance.now();
       console.log('[Relation][SEND][RESPONSE] /api/relations/send', {
         durationMs: Math.round(t1 - t0),

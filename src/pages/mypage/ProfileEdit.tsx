@@ -48,7 +48,7 @@ const ProfileEdit = () => {
         setFormData(prev => ({
           ...prev,
           name: profile.name,
-          patientNumber: profile.userId, // userId를 환자번호로 사용
+          patientNumber: profile.patientCode || profile.userId || '', // patientCode 우선, 없으면 userId 사용
           gender: genderUI,
         }));
         setGender(genderUI);
