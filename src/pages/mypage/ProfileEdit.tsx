@@ -18,7 +18,7 @@ import {
   Input,
   GenderButton,
 } from '@components/index';
-import { getUserProfile, updateUserProfile, type UserProfile } from '@services/index';
+import { getUserProfile, updateUserProfile } from '@services/index';
 
 const ProfileEdit = () => {
   const navigate = useNavigate();

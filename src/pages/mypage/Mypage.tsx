@@ -39,14 +39,13 @@ const Mypage = () => {
     name: '홍길동',
     email: 'abcd1234@abc.com',
   });
-  const [profileLoading, setProfileLoading] = useState(true);
+  
   const [profileImage, setProfileImage] = useState('☁️'); // 기본 이미지: 구름
 
   // 컴포넌트 마운트 시 프로필 정보 및 리마인더 조회
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setProfileLoading(true);
         
         // 프로필 정보 조회
         const profile = await getUserProfile();
@@ -57,7 +56,8 @@ const Mypage = () => {
         
         // 프로필 이미지 설정
         if (profile.imageUrl) {
-          setProfileImage(profile.imageUrl);
+          const url = String(profile.imageUrl).trim();
+          setProfileImage(url);
         } else {
           setProfileImage('☁️'); // 이미지 URL이 없으면 기본 구름
         }
@@ -83,7 +83,6 @@ const Mypage = () => {
         console.error('데이터 조회 실패:', error);
         alert('서버 연결에 실패했습니다');
       } finally {
-        setProfileLoading(false);
       }
     };
 
@@ -107,25 +106,71 @@ const Mypage = () => {
     if (file) {
       try {
         const ext = (file.name.split('.').pop() || 'png').toLowerCase();
-        const { uploadUrl } = await getProfileImageUploadUrl(ext);
+        const { uploadUrl, fileKey: presignedFileKey, key: presignedKey, id: presignedId } = await getProfileImageUploadUrl(ext);
+        console.log('[ProfileUpload] presigned URL received', {
+          uploadUrl,
+          fileKey: presignedFileKey || presignedKey || presignedId,
+          ext,
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+        });
         const urlObj = new URL(uploadUrl);
-        const urlFileKey = urlObj.searchParams.get('fileKey') || urlObj.searchParams.get('key') || undefined;
+        const urlQueryKey = urlObj.searchParams.get('fileKey') || urlObj.searchParams.get('key') || undefined;
+        // pathname 기반 키 추출 (S3/GCS 호환)
+        const rawPath = decodeURIComponent(urlObj.pathname.replace(/^\/+/, ''));
+        const firstPathSegment = rawPath.split('/')[0] || '';
+        const pathCandidates = [
+          rawPath,
+          rawPath.split('/').slice(1).join('/'),
+        ].filter(Boolean);
+        const pathDerivedKey = pathCandidates.find(p => p.endsWith(file.name) || p.endsWith(`.${ext}`)) || pathCandidates[0];
+        console.log('[ProfileUpload] derived keys from URL', {
+          urlQueryKey,
+          pathDerivedKey,
+          host: urlObj.hostname,
+          pathname: urlObj.pathname,
+        });
         // 대부분의 사전서명 URL(GCS/S3)은 파일 원본을 PUT으로 업로드하고 Content-Type을 지정합니다.
+        console.log('[ProfileUpload][PUT] start upload', {
+          to: uploadUrl,
+          method: 'PUT',
+          contentType: file.type || 'application/octet-stream',
+        });
+        const t0 = performance.now();
         const uploadResponse = await fetch(uploadUrl, {
           method: 'PUT',
           headers: { 'Content-Type': file.type || 'application/octet-stream' },
           body: file,
         });
+        const t1 = performance.now();
+        console.log('[ProfileUpload][PUT] done', {
+          ok: uploadResponse.ok,
+          status: uploadResponse.status,
+          statusText: uploadResponse.statusText,
+          durationMs: Math.round(t1 - t0),
+        });
         
         if (uploadResponse.ok) {
-          let fileKey = urlFileKey;
+          // URL 기반 키를 우선 사용하고, 이후 서버 제공 키를 고려합니다
+          let fileKey = urlQueryKey || pathDerivedKey || presignedFileKey || presignedKey || presignedId;
           if (!fileKey) {
             try {
               const uploadResult = await uploadResponse.clone().json();
               fileKey = uploadResult.fileKey || uploadResult.key || uploadResult.id;
+              console.log('[ProfileUpload][PUT] parsed upload body for key', uploadResult);
             } catch {}
           }
+          // 버킷명이 포함된 키라면 제거 (path-style URL 대응)
+          if (fileKey && firstPathSegment && fileKey.startsWith(firstPathSegment + '/')) {
+            const stripped = fileKey.slice(firstPathSegment.length + 1);
+            if (stripped && (stripped.endsWith(file.name) || stripped.endsWith('.' + ext))) {
+              console.log('[ProfileUpload] stripping bucket prefix from key', { before: fileKey, after: stripped, bucket: firstPathSegment });
+              fileKey = stripped;
+            }
+          }
           if (!fileKey) throw new Error('파일 키를 찾을 수 없습니다.');
+          console.log('[ProfileUpload][POST] updateProfileImage with fileKey', fileKey);
           const updated = await updateProfileImage(fileKey);
           if (updated?.imageUrl) {
             setProfileImage(updated.imageUrl);
@@ -203,8 +248,16 @@ const Mypage = () => {
       <ContentContainer navMargin={true}>
         <ProfileSection>
           <ProfileImage onClick={handleProfileImageClick}>
-            {profileImage.startsWith('http') ? (
-              <ProfileImgTag src={profileImage} alt="프로필" />
+            {(
+              profileImage.startsWith('http') ||
+              profileImage.startsWith('data:') ||
+              profileImage.startsWith('blob:')
+            ) ? (
+              <ProfileImgTag
+                src={profileImage}
+                alt="프로필"
+                onError={() => setProfileImage('☁️')}
+              />
             ) : (
               <ProfileCharacter>{profileImage}</ProfileCharacter>
             )}

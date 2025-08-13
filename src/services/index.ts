@@ -68,11 +68,25 @@ export const submitFeedback = async (rating: string, reason: string): Promise<vo
 };
 
 // 프로필 이미지 업로드 URL 요청 API (extension 쿼리 필요)
-export const getProfileImageUploadUrl = async (extension: string): Promise<{ uploadUrl: string }> => {
+export interface ProfileUploadUrlResponse {
+  uploadUrl: string;
+  fileKey?: string;
+  key?: string;
+  id?: string;
+}
+
+export const getProfileImageUploadUrl = async (extension: string): Promise<ProfileUploadUrlResponse> => {
+  console.log('[ProfileUpload][GET] requesting presigned URL', {
+    baseURL: API_BASE_URL,
+    extension,
+  });
   const response = await apiClient.get('/api/images/profile/upload-url', {
     params: { extension },
   });
-  return response.data;
+  const payload = response.data as any;
+  const data = payload && payload.result ? payload.result : payload;
+  console.log('[ProfileUpload][GET] presigned URL response', data);
+  return data as ProfileUploadUrlResponse;
 };
 
 // 프로필 이미지 업데이트 API (업데이트된 프로필 반환)
@@ -113,14 +127,120 @@ export const setReminder = async (time: string | null): Promise<void> => {
   await apiClient.post('/api/reminder', body);
 };
 
+// 일간 감정 분석 타입 및 API
+export interface MonthlyEmotionDataItem {
+  date: string; // YYYY-MM-DD
+  emotionType: string; // e.g., HAPPY, SAD, ANGRY, SURPRISED, BORED
+}
+
+export interface DayAnalysis {
+  userId: string;
+  analysisDate: string; // YYYY-MM-DD
+  happyScore: number;
+  sadScore: number;
+  angryScore: number;
+  surprisedScore: number;
+  boredScore: number;
+  monthlyEmotionData: MonthlyEmotionDataItem[];
+}
+
+export const getDayAnalysis = async (
+  date: string,
+  userId: string,
+): Promise<DayAnalysis | null> => {
+  try {
+    const response = await apiClient.get('/api/analysis/day', {
+      params: { date, userId },
+    });
+    const payload = response.data as any;
+    return (payload && payload.result) ? (payload.result as DayAnalysis) : (payload as DayAnalysis);
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      return null; // 데이터 없음
+    }
+    throw error; // 그 외 에러는 상위에서 처리
+  }
+};
+
+// 기간 감정 분석 타입 및 API
+export interface PeriodTimelineItem {
+  date: string;
+  happyScore: number;
+  sadScore: number;
+  angryScore: number;
+  surprisedScore: number;
+  boredScore: number;
+  riskScore: number;
+}
+
+export interface PeriodAnalysis {
+  userId: string;
+  start: string; // YYYY-MM-DD
+  end: string; // YYYY-MM-DD
+  averageRiskScore: number;
+  emotionTimeline: PeriodTimelineItem[];
+  totalParticipate: number;
+  averageCallTime: string;
+}
+
+export const getPeriodAnalysis = async (
+  start: string,
+  end: string,
+  userId: string,
+): Promise<PeriodAnalysis | null> => {
+  try {
+    const response = await apiClient.get('/api/analysis/period', {
+      params: { start, end, userId },
+    });
+    const payload = response.data as any;
+    return (payload && payload.result)
+      ? (payload.result as PeriodAnalysis)
+      : (payload as PeriodAnalysis);
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+};
+
+// 종합보고서 관련 타입 정의
+export interface LatestReport {
+  reportId: string;
+  userId: string;
+  createdAt: string;
+  report: string;
+}
+
+// 최근 분석 리포트 조회 API
+export const getLatestReport = async (
+  periodEnd: string,
+  userId: string,
+): Promise<LatestReport | null> => {
+  try {
+    const response = await apiClient.get('/api/analysis/report/latest', {
+      params: { periodEnd, userId },
+    });
+    const payload = response.data as any;
+    return (payload && payload.result)
+      ? (payload.result as LatestReport)
+      : (payload as LatestReport);
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+};
+
 // 관계 관련 타입 정의
 export interface Relation {
-  counterId: string;
+  relationId: string;
   name: string;
   patientCode: string;
   relationType: 'GUARDIAN' | 'PATIENT';
   createdAt: string;
-  status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'DISCONNECTED';
   initiator: 'GUARDIAN' | 'PATIENT';
 }
 
@@ -147,38 +267,77 @@ export interface RelationResendRequest {
 
 // 관계 목록 조회 API
 export const getRelations = async (): Promise<Relation[]> => {
+  console.log('[Relation][LIST][REQUEST][service] /api/relations');
   const response = await apiClient.get('/api/relations');
   const payload = response.data as any;
   const list = payload && payload.result ? payload.result : payload;
+  console.log('[Relation][LIST][RESPONSE][service] /api/relations', {
+    count: Array.isArray(list) ? list.length : 0,
+    sample: Array.isArray(list) ? list.slice(0, 3) : list,
+  });
   return Array.isArray(list) ? list : [];
 };
 
 // 관계 요청 전송 API
-export const sendRelationRequest = async (to: string): Promise<any> => {
+export interface ApiEnvelope<T> {
+  timestamp?: string;
+  code?: string;
+  message?: string;
+  result?: T;
+}
+
+export const sendRelationRequest = async (to: string): Promise<ApiEnvelope<string>> => {
+  console.log('[Relation][SEND][REQUEST][service] /api/relations/send', { to });
   const response = await apiClient.post('/api/relations/send', { to });
-  return response.data;
+  const raw = response.data as any;
+  const envelope: ApiEnvelope<string> = (raw && typeof raw === 'object' && ('result' in raw || 'message' in raw))
+    ? raw as ApiEnvelope<string>
+    : { result: raw };
+  console.log('[Relation][SEND][RESPONSE][service] /api/relations/send', envelope);
+  return envelope;
 };
 
 // 관계 요청 응답 API (승인/거절)
 export const replyToRelationRequest = async (counterId: string, status: 'ACCEPTED' | 'REJECTED'): Promise<void> => {
-  await apiClient.patch('/api/relations/reply', {
-    relationId: counterId, // counterId를 relationId로 사용
-    status,
+  console.log('[Relation][REPLY][REQUEST] /api/relations/reply', { relationId: counterId, status });
+  await apiClient.patch('/api/relations/reply', undefined, {
+    params: {
+      relationId: counterId, // counterId를 relationId로 사용
+      status,
+    },
   });
+  console.log('[Relation][REPLY][RESPONSE] /api/relations/reply OK');
 };
 
 // 관계 요청 재전송 API
-export const resendRelationRequest = async (relationId: string, to: string): Promise<any> => {
-  const response = await apiClient.post('/api/relations/resend', {
+export const resendRelationRequest = async (relationId: string): Promise<any> => {
+  const token = localStorage.getItem('accessToken');
+  console.log('[Relation][RESEND][REQUEST][service] /api/relations/resend', {
     relationId,
-    to,
+    hasToken: Boolean(token),
+    tokenPreview: token ? token.slice(0, 12) + '...' : undefined,
   });
-  return response.data;
+  try {
+    const response = await apiClient.post('/api/relations/resend', {
+      relationId,
+    });
+    console.log('[Relation][RESEND][RESPONSE][service] /api/relations/resend', response.data);
+    return response.data;
+  } catch (err: any) {
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+    console.warn('[Relation][RESEND][ERROR][service]', { status, data });
+    throw err;
+  }
 };
 
 // 관계 해제 API
-export const deleteRelation = async (counterId: string): Promise<void> => {
-  await apiClient.delete(`/api/relations/${counterId}`); // counterId를 relationId로 사용
+export const deleteRelation = async (relationId: string): Promise<void> => {
+  console.log('[Relation][DELETE][REQUEST] /api/relations', { relationId });
+  await apiClient.delete('/api/relations', {
+    params: { relationId },
+  });
+  console.log('[Relation][DELETE][RESPONSE] /api/relations OK');
 };
 
 // 프로필 관련 타입 정의
@@ -188,6 +347,7 @@ export interface UserProfile {
   email: string;
   gender: 'MALE' | 'FEMALE';
   imageUrl: string;
+  patientCode?: string;
 }
 
 export interface ProfileUpdateRequest {
