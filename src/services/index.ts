@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 // API 기본 설정
-const API_BASE_URL = 'http://localhost:8080';
-
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}`;
 // axios 인스턴스 생성
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -14,7 +13,7 @@ const apiClient = axios.create({
 // 요청 인터셉터 - 토큰 자동 추가
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,8 +29,14 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      const url: string = error.config?.url ?? '';
+      const method: string = (error.config?.method || '').toLowerCase();
+      // 프로필 수정(비밀번호 검증 실패 등)에서는 리다이렉트하지 않음
+      if (url.includes('/api/users/profile') && method === 'patch') {
+        return Promise.reject(error);
+      }
       // 토큰이 만료되었거나 유효하지 않은 경우
-      localStorage.removeItem('token');
+      localStorage.removeItem('accessToken');
       window.location.href = '/';
     }
     return Promise.reject(error);
@@ -47,7 +52,7 @@ export const logoutUser = async (): Promise<void> => {
     // API 호출이 실패해도 로컬에서 로그아웃 처리
   } finally {
     // 로컬 스토리지 정리
-    localStorage.removeItem('token');
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     // 기타 필요한 데이터 정리
   }
@@ -62,26 +67,37 @@ export const submitFeedback = async (rating: string, reason: string): Promise<vo
   return response.data;
 };
 
-// 프로필 이미지 업로드 URL 요청 API
-export const getProfileImageUploadUrl = async (): Promise<{ uploadUrl: string }> => {
-  const response = await apiClient.get('/api/images/profile/upload-url');
+// 프로필 이미지 업로드 URL 요청 API (extension 쿼리 필요)
+export const getProfileImageUploadUrl = async (extension: string): Promise<{ uploadUrl: string }> => {
+  const response = await apiClient.get('/api/images/profile/upload-url', {
+    params: { extension },
+  });
   return response.data;
 };
 
-// 프로필 이미지 업데이트 API
-export const updateProfileImage = async (fileKey: string): Promise<void> => {
-  await apiClient.post('/api/images/profile', {
+// 프로필 이미지 업데이트 API (업데이트된 프로필 반환)
+export const updateProfileImage = async (fileKey: string): Promise<UserProfile> => {
+  const response = await apiClient.post('/api/images/profile', {
     fileKey,
   });
+  const payload = response.data;
+  return (payload && payload.result) ? payload.result : payload;
 };
 
 // 리마인더 조회 API
-export const getReminder = async (): Promise<{ time: string } | null> => {
+export interface ReminderResponse {
+  fireTime?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+  time?: string; // 하위 호환
+}
+
+export const getReminder = async (): Promise<ReminderResponse | null> => {
   try {
     const response = await apiClient.get('/api/reminder');
-    return response.data;
+    const payload = response.data;
+    return (payload && (payload as any).result) ? (payload as any).result : payload;
   } catch (error) {
-    if (error.response?.status === 404) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       // 리마인더가 설정되지 않은 경우
       return null;
     }
@@ -90,11 +106,11 @@ export const getReminder = async (): Promise<{ time: string } | null> => {
 };
 
 // 리마인더 설정 API
-export const setReminder = async (time: string): Promise<void> => {
-  await apiClient.post('/api/reminder', {
-    fireTime: time,
-    status: time ? 'ACTIVE' : 'INACTIVE',
-  });
+export const setReminder = async (time: string | null): Promise<void> => {
+  const body = time
+    ? { fireTime: time, status: 'ACTIVE' }
+    : { status: 'INACTIVE' };
+  await apiClient.post('/api/reminder', body);
 };
 
 // 관계 관련 타입 정의
@@ -132,7 +148,9 @@ export interface RelationResendRequest {
 // 관계 목록 조회 API
 export const getRelations = async (): Promise<Relation[]> => {
   const response = await apiClient.get('/api/relations');
-  return response.data;
+  const payload = response.data as any;
+  const list = payload && payload.result ? payload.result : payload;
+  return Array.isArray(list) ? list : [];
 };
 
 // 관계 요청 전송 API
@@ -183,13 +201,16 @@ export interface ProfileUpdateRequest {
 // 프로필 조회 API
 export const getUserProfile = async (): Promise<UserProfile> => {
   const response = await apiClient.get('/api/users/profile');
-  return response.data;
+  // API가 { timestamp, code, message, result } 랩퍼를 사용하는 경우 대응
+  const payload = response.data;
+  return (payload && payload.result) ? payload.result : payload;
 };
 
 // 프로필 수정 API
 export const updateUserProfile = async (profileData: ProfileUpdateRequest): Promise<UserProfile> => {
   const response = await apiClient.patch('/api/users/profile', profileData);
-  return response.data;
+  const payload = response.data;
+  return (payload && payload.result) ? payload.result : payload;
 };
 
 export default apiClient;

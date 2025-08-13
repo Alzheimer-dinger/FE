@@ -65,7 +65,17 @@ const Mypage = () => {
         // 리마인더 조회
         const reminderData = await getReminder();
         if (reminderData && reminderData.status === 'ACTIVE') {
-          setRemindTime(reminderData.fireTime || reminderData.time);
+          const raw = (reminderData.fireTime || reminderData.time || '').toString();
+          const [hStr, mStr] = raw.split(':');
+          if (hStr && mStr) {
+            let h = parseInt(hStr, 10);
+            const period = h >= 12 ? '오후' : '오전';
+            const displayHour = h % 12 || 12; // 0 -> 12 처리
+            const mm = mStr.padStart(2, '0');
+            setRemindTime(`${period} ${displayHour}:${mm}`);
+          } else {
+            setRemindTime(null);
+          }
         } else {
           setRemindTime(null);
         }
@@ -96,38 +106,38 @@ const Mypage = () => {
     const file = event.target.files?.[0];
     if (file) {
       try {
-        // 1. 업로드 URL 요청
-        const { uploadUrl } = await getProfileImageUploadUrl();
-        
-        // 2. 파일을 업로드 URL로 전송
-        const formData = new FormData();
-        formData.append('file', file);
-        
+        const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+        const { uploadUrl } = await getProfileImageUploadUrl(ext);
+        const urlObj = new URL(uploadUrl);
+        const urlFileKey = urlObj.searchParams.get('fileKey') || urlObj.searchParams.get('key') || undefined;
+        // 대부분의 사전서명 URL(GCS/S3)은 파일 원본을 PUT으로 업로드하고 Content-Type을 지정합니다.
         const uploadResponse = await fetch(uploadUrl, {
-          method: 'POST',
-          body: formData,
+          method: 'PUT',
+          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          body: file,
         });
         
         if (uploadResponse.ok) {
-          // 3. 업로드 성공 시 응답에서 fileKey 추출 (응답 형식에 따라 조정 필요)
-          const uploadResult = await uploadResponse.json();
-          const fileKey = uploadResult.fileKey || uploadResult.key || uploadResult.id;
-          
-          if (fileKey) {
-            // 4. 프로필 이미지 업데이트 API 호출
-            await updateProfileImage(fileKey);
-            
-            // 5. UI 업데이트 - 업로드된 이미지 표시
+          let fileKey = urlFileKey;
+          if (!fileKey) {
+            try {
+              const uploadResult = await uploadResponse.clone().json();
+              fileKey = uploadResult.fileKey || uploadResult.key || uploadResult.id;
+            } catch {}
+          }
+          if (!fileKey) throw new Error('파일 키를 찾을 수 없습니다.');
+          const updated = await updateProfileImage(fileKey);
+          if (updated?.imageUrl) {
+            setProfileImage(updated.imageUrl);
+          } else {
             const reader = new FileReader();
             reader.onload = e => {
               const result = e.target?.result as string;
               setProfileImage(result);
-              setShowImageModal(false);
             };
             reader.readAsDataURL(file);
-          } else {
-            throw new Error('파일 키를 찾을 수 없습니다.');
           }
+          setShowImageModal(false);
         } else {
           throw new Error('파일 업로드에 실패했습니다.');
         }
@@ -165,7 +175,7 @@ const Mypage = () => {
 
   const handleReminderDeactivate = async () => {
     try {
-      await setReminder(''); // 빈 문자열로 호출하여 status만 INACTIVE로 설정
+      await setReminder(null); // INACTIVE로 설정
       setRemindTime(null);
     } catch (error) {
       console.error('리마인더 해제 실패:', error);
@@ -304,19 +314,32 @@ const Mypage = () => {
         timeValue={remindTimeValue}
         onTimeChange={setRemindTimeValue}
         onConfirm={async () => {
-          const timeString = `${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`;
+          const { period, hour, minute } = remindTimeValue;
+          // 화면 표시용(오전/오후)
+          const displayTime = `${period} ${hour}:${minute}`;
+          // API 전송용(로컬 HH:mm)
+          let h = parseInt(hour, 10);
+          if (period === '오전' && h === 12) h = 0; // 12AM -> 00
+          if (period === '오후' && h !== 12) h += 12; // PM add 12 except 12PM
+          const apiTime = `${String(h).padStart(2, '0')}:${minute}`;
           try {
-            await setReminder(timeString);
-            setRemindTime(timeString);
+            await setReminder(apiTime);
+            setRemindTime(displayTime);
             setShowTimeModal(false);
           } catch (error) {
             console.error('리마인더 설정 실패:', error);
             alert('리마인더 설정에 실패했습니다.');
           }
         }}
-        onCancel={() => {
-          setRemindTime(null);
-          setShowTimeModal(false);
+        onCancel={async () => {
+          try {
+            await setReminder(null);
+            setRemindTime(null);
+            setShowTimeModal(false);
+          } catch (error) {
+            console.error('리마인더 해제 실패:', error);
+            alert('리마인더 해제에 실패했습니다.');
+          }
         }}
       />
 
