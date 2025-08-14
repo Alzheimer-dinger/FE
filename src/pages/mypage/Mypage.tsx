@@ -9,13 +9,22 @@ import {
   LogoutModal,
   SettingItem,
 } from '@components/index';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  logoutUser,
+  submitFeedback,
+  getProfileImageUploadUrl,
+  updateProfileImage,
+  getReminder,
+  setReminder,
+  getRelations,
+  getUserProfile,
+} from '@services/api';
 
 const Mypage = () => {
   const navigate = useNavigate();
   const [showImageModal, setShowImageModal] = useState(false);
-  const [profileImage, setProfileImage] = useState('☁️');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [alarmOn, setAlarmOn] = useState(true);
 
@@ -34,6 +43,64 @@ const Mypage = () => {
   const [showToast, setShowToast] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // 프로필 정보 상태
+  const [profileInfo, setProfileInfo] = useState({
+    name: '홍길동',
+    email: 'abcd1234@abc.com',
+  });
+
+  const [profileImage, setProfileImage] = useState('☁️'); // 기본 이미지: 구름
+
+  // 컴포넌트 마운트 시 프로필 정보 및 리마인더 조회
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 프로필 정보 조회
+        const profile = await getUserProfile();
+        setProfileInfo({
+          name: profile.name,
+          email: profile.email,
+        });
+
+        // 프로필 이미지 설정
+        if (profile.imageUrl) {
+          const url = String(profile.imageUrl).trim();
+          setProfileImage(url);
+        } else {
+          setProfileImage('☁️'); // 이미지 URL이 없으면 기본 구름
+        }
+
+        // 리마인더 조회
+        const reminderData = await getReminder();
+        if (reminderData && reminderData.status === 'ACTIVE') {
+          const raw = (
+            reminderData.fireTime ||
+            reminderData.time ||
+            ''
+          ).toString();
+          const [hStr, mStr] = raw.split(':');
+          if (hStr && mStr) {
+            let h = parseInt(hStr, 10);
+            const period = h >= 12 ? '오후' : '오전';
+            const displayHour = h % 12 || 12; // 0 -> 12 처리
+            const mm = mStr.padStart(2, '0');
+            setRemindTime(`${period} ${displayHour}:${mm}`);
+          } else {
+            setRemindTime(null);
+          }
+        } else {
+          setRemindTime(null);
+        }
+      } catch (error) {
+        console.error('데이터 조회 실패:', error);
+        alert('서버 연결에 실패했습니다');
+      } finally {
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleProfileEditClick = () => {
     navigate('/mypage/edit');
   };
@@ -46,16 +113,131 @@ const Mypage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const result = e.target?.result as string;
-        setProfileImage(result);
-        setShowImageModal(false);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+        const {
+          uploadUrl,
+          fileKey: presignedFileKey,
+          key: presignedKey,
+          id: presignedId,
+        } = await getProfileImageUploadUrl(ext);
+        console.log('[ProfileUpload] presigned URL received', {
+          uploadUrl,
+          fileKey: presignedFileKey || presignedKey || presignedId,
+          ext,
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+        });
+        const urlObj = new URL(uploadUrl);
+        const urlQueryKey =
+          urlObj.searchParams.get('fileKey') ||
+          urlObj.searchParams.get('key') ||
+          undefined;
+        // pathname 기반 키 추출 (S3/GCS 호환)
+        const rawPath = decodeURIComponent(urlObj.pathname.replace(/^\/+/, ''));
+        const firstPathSegment = rawPath.split('/')[0] || '';
+        const pathCandidates = [
+          rawPath,
+          rawPath.split('/').slice(1).join('/'),
+        ].filter(Boolean);
+        const pathDerivedKey =
+          pathCandidates.find(
+            p => p.endsWith(file.name) || p.endsWith(`.${ext}`),
+          ) || pathCandidates[0];
+        console.log('[ProfileUpload] derived keys from URL', {
+          urlQueryKey,
+          pathDerivedKey,
+          host: urlObj.hostname,
+          pathname: urlObj.pathname,
+        });
+        // 대부분의 사전서명 URL(GCS/S3)은 파일 원본을 PUT으로 업로드하고 Content-Type을 지정합니다.
+        console.log('[ProfileUpload][PUT] start upload', {
+          to: uploadUrl,
+          method: 'PUT',
+          contentType: file.type || 'application/octet-stream',
+        });
+        const t0 = performance.now();
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type || 'application/octet-stream' },
+          body: file,
+        });
+        const t1 = performance.now();
+        console.log('[ProfileUpload][PUT] done', {
+          ok: uploadResponse.ok,
+          status: uploadResponse.status,
+          statusText: uploadResponse.statusText,
+          durationMs: Math.round(t1 - t0),
+        });
+
+        if (uploadResponse.ok) {
+          // URL 기반 키를 우선 사용하고, 이후 서버 제공 키를 고려합니다
+          let fileKey =
+            urlQueryKey ||
+            pathDerivedKey ||
+            presignedFileKey ||
+            presignedKey ||
+            presignedId;
+          if (!fileKey) {
+            try {
+              const uploadResult = await uploadResponse.clone().json();
+              fileKey =
+                uploadResult.fileKey || uploadResult.key || uploadResult.id;
+              console.log(
+                '[ProfileUpload][PUT] parsed upload body for key',
+                uploadResult,
+              );
+            } catch {}
+          }
+          // 버킷명이 포함된 키라면 제거 (path-style URL 대응)
+          if (
+            fileKey &&
+            firstPathSegment &&
+            fileKey.startsWith(firstPathSegment + '/')
+          ) {
+            const stripped = fileKey.slice(firstPathSegment.length + 1);
+            if (
+              stripped &&
+              (stripped.endsWith(file.name) || stripped.endsWith('.' + ext))
+            ) {
+              console.log('[ProfileUpload] stripping bucket prefix from key', {
+                before: fileKey,
+                after: stripped,
+                bucket: firstPathSegment,
+              });
+              fileKey = stripped;
+            }
+          }
+          if (!fileKey) throw new Error('파일 키를 찾을 수 없습니다.');
+          console.log(
+            '[ProfileUpload][POST] updateProfileImage with fileKey',
+            fileKey,
+          );
+          const updated = await updateProfileImage(fileKey);
+          if (updated?.imageUrl) {
+            setProfileImage(updated.imageUrl);
+          } else {
+            const reader = new FileReader();
+            reader.onload = e => {
+              const result = e.target?.result as string;
+              setProfileImage(result);
+            };
+            reader.readAsDataURL(file);
+          }
+          setShowImageModal(false);
+        } else {
+          throw new Error('파일 업로드에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('프로필 이미지 업로드 실패:', error);
+        alert('프로필 이미지 업로드에 실패했습니다.');
+      }
     }
   };
 
@@ -66,27 +248,14 @@ const Mypage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          rating: selectedRating,
-          reason: feedbackReason,
-        }),
-      });
-
-      if (response.ok) {
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-        setShowFeedbackModal(false);
-        setSelectedRating('');
-        setFeedbackReason('');
-      } else {
-        alert('피드백 전송에 실패했습니다.');
-      }
-    } catch {
+      await submitFeedback(selectedRating, feedbackReason);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      setShowFeedbackModal(false);
+      setSelectedRating('');
+      setFeedbackReason('');
+    } catch (error) {
+      console.error('피드백 전송 실패:', error);
       alert('피드백 전송에 실패했습니다.');
     }
   };
@@ -97,10 +266,28 @@ const Mypage = () => {
     setFeedbackReason('');
   };
 
-  const handleLogout = () => {
-    // 로그아웃 로직 구현
-    console.log('로그아웃 실행');
-    // 여기에 실제 로그아웃 로직 추가
+  const handleReminderDeactivate = async () => {
+    try {
+      await setReminder(null); // INACTIVE로 설정
+      setRemindTime(null);
+    } catch (error) {
+      console.error('리마인더 해제 실패:', error);
+      alert('리마인더 해제에 실패했습니다.');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      // 로그아웃 성공 후 초기 화면으로 이동
+      navigate('/');
+      setShowLogoutModal(false);
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+      // 에러가 발생해도 초기 화면으로 이동
+      navigate('/');
+      setShowLogoutModal(false);
+    }
   };
 
   return (
@@ -109,15 +296,21 @@ const Mypage = () => {
       <ContentContainer navMargin={true}>
         <ProfileSection>
           <ProfileImage onClick={handleProfileImageClick}>
-            {profileImage.startsWith('data:image') ? (
-              <ProfileImgTag src={profileImage} alt="프로필" />
+            {profileImage.startsWith('http') ||
+            profileImage.startsWith('data:') ||
+            profileImage.startsWith('blob:') ? (
+              <ProfileImgTag
+                src={profileImage}
+                alt="프로필"
+                onError={() => setProfileImage('☁️')}
+              />
             ) : (
               <ProfileCharacter>{profileImage}</ProfileCharacter>
             )}
           </ProfileImage>
           <ProfileInfo>
-            <ProfileName>홍길동</ProfileName>
-            <ProfileEmail>abcd1234@gmail.com</ProfileEmail>
+            <ProfileName>{profileInfo.name}</ProfileName>
+            <ProfileEmail>{profileInfo.email}</ProfileEmail>
           </ProfileInfo>
         </ProfileSection>
 
@@ -153,7 +346,19 @@ const Mypage = () => {
             text="리마인드 시간"
             onClick={() => setShowTimeModal(true)}
             rightElement={
-              remindTime && <RemindTimeText>{remindTime}</RemindTimeText>
+              remindTime ? (
+                <RemindTimeContainer>
+                  <RemindTimeText>{remindTime}</RemindTimeText>
+                  <DeactivateButton
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleReminderDeactivate();
+                    }}
+                  >
+                    해제
+                  </DeactivateButton>
+                </RemindTimeContainer>
+              ) : null
             }
           />
 
@@ -161,7 +366,19 @@ const Mypage = () => {
             icon="🛡️"
             iconBgColor="#e3f2fd"
             text="등록된 환자/보호자"
-            onClick={() => navigate('/manage')}
+            onClick={async () => {
+              try {
+                // 관계 목록을 미리 조회하여 상태로 저장
+                const relations = await getRelations();
+                // 관계 데이터를 로컬 스토리지나 상태로 저장하여 다음 화면에서 사용
+                localStorage.setItem('relations', JSON.stringify(relations));
+                navigate('/manage');
+              } catch (error) {
+                console.error('관계 목록 조회 실패:', error);
+                // 조회 실패해도 화면 이동
+                navigate('/manage');
+              }
+            }}
             showArrow={true}
           />
 
@@ -197,15 +414,33 @@ const Mypage = () => {
         onClose={() => setShowTimeModal(false)}
         timeValue={remindTimeValue}
         onTimeChange={setRemindTimeValue}
-        onConfirm={() => {
-          setRemindTime(
-            `${remindTimeValue.period} ${remindTimeValue.hour}:${remindTimeValue.minute}`,
-          );
-          setShowTimeModal(false);
+        onConfirm={async () => {
+          const { period, hour, minute } = remindTimeValue;
+          // 화면 표시용(오전/오후)
+          const displayTime = `${period} ${hour}:${minute}`;
+          // API 전송용(로컬 HH:mm)
+          let h = parseInt(hour, 10);
+          if (period === '오전' && h === 12) h = 0; // 12AM -> 00
+          if (period === '오후' && h !== 12) h += 12; // PM add 12 except 12PM
+          const apiTime = `${String(h).padStart(2, '0')}:${minute}`;
+          try {
+            await setReminder(apiTime);
+            setRemindTime(displayTime);
+            setShowTimeModal(false);
+          } catch (error) {
+            console.error('리마인더 설정 실패:', error);
+            alert('리마인더 설정에 실패했습니다.');
+          }
         }}
-        onCancel={() => {
-          setRemindTime(null);
-          setShowTimeModal(false);
+        onCancel={async () => {
+          try {
+            await setReminder(null);
+            setRemindTime(null);
+            setShowTimeModal(false);
+          } catch (error) {
+            console.error('리마인더 해제 실패:', error);
+            alert('리마인더 해제에 실패했습니다.');
+          }
         }}
       />
 
@@ -344,10 +579,30 @@ const ToggleSlider = styled.div<{ $on: boolean }>`
   transition: left 0.2s;
 `;
 
+const RemindTimeContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
 const RemindTimeText = styled.span`
-  margin-left: 8px;
   color: #6c3cff;
   font-size: 0.95rem;
+`;
+
+const DeactivateButton = styled.button`
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #ff5252;
+  }
 `;
 
 const ToastMessage = styled.div`

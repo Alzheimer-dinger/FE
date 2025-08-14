@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { createGlobalStyle } from 'styled-components';
+import '@utils/setupFetchInterceptor';
 
 const GlobalStyle = createGlobalStyle`
   body {

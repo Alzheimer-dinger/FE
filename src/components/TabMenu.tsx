@@ -37,18 +37,18 @@ const TabContainer = styled.div`
   display: flex;
   background: #f5f5f5;
   border-radius: 999px;
-  padding: 4px;
-  width: 80%;
+  padding: 6px;
+  width: 90%;
 `;
 
 const TabButton = styled.button<{ $active: boolean }>`
   flex: 1;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border: none;
   border-radius: 999px;
   background: ${({ $active }) => ($active ? '#6c3cff' : 'transparent')};
   color: ${({ $active }) => ($active ? 'white' : '#666')};
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;

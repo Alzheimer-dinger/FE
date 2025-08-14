@@ -22,8 +22,12 @@ const ProfileImageModal = ({
         <ModalTitle>프로필 사진 수정</ModalTitle>
         <ModalImageContainer>
           <ModalImage>
-            {profileImage.startsWith('data:image') ? (
-              <ProfileImgTag src={profileImage} alt="프로필" />
+            {(
+              profileImage.startsWith('http') ||
+              profileImage.startsWith('data:') ||
+              profileImage.startsWith('blob:')
+            ) ? (
+              <ProfileImgTag src={profileImage} alt="프로필" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
               profileImage
             )}

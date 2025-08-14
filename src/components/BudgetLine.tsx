@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Line,
   LineChart,
@@ -14,53 +14,13 @@ const COLORS = {
   blue: '#6c3cff',
 };
 
-// Emotion data for the last 7 days
-const emotionData = {
-  happy: [
-    { day: '월', score: 85 },
-    { day: '화', score: 90 },
-    { day: '수', score: 75 },
-    { day: '목', score: 88 },
-    { day: '금', score: 92 },
-    { day: '토', score: 95 },
-    { day: '일', score: 87 },
-  ],
-  sad: [
-    { day: '월', score: 30 },
-    { day: '화', score: 25 },
-    { day: '수', score: 40 },
-    { day: '목', score: 35 },
-    { day: '금', score: 20 },
-    { day: '토', score: 45 },
-    { day: '일', score: 38 },
-  ],
-  angry: [
-    { day: '월', score: 15 },
-    { day: '화', score: 25 },
-    { day: '수', score: 10 },
-    { day: '목', score: 30 },
-    { day: '금', score: 20 },
-    { day: '토', score: 5 },
-    { day: '일', score: 12 },
-  ],
-  surprised: [
-    { day: '월', score: 60 },
-    { day: '화', score: 45 },
-    { day: '수', score: 70 },
-    { day: '목', score: 55 },
-    { day: '금', score: 80 },
-    { day: '토', score: 65 },
-    { day: '일', score: 50 },
-  ],
-  bored: [
-    { day: '월', score: 50 },
-    { day: '화', score: 45 },
-    { day: '수', score: 60 },
-    { day: '목', score: 40 },
-    { day: '금', score: 35 },
-    { day: '토', score: 70 },
-    { day: '일', score: 55 },
-  ],
+type PeriodPoint = {
+  date: string;
+  happyScore: number;
+  sadScore: number;
+  angryScore: number;
+  surprisedScore: number;
+  boredScore: number;
 };
 
 const emotions = [
@@ -79,12 +39,36 @@ const CustomCursor = (props: any) => {
   );
 };
 
-const BudgetLine = () => {
+interface Props {
+  data?: PeriodPoint[] | null;
+}
+
+const BudgetLine = ({ data }: Props) => {
   const [selectedEmotion, setSelectedEmotion] = useState('happy');
 
   const handleEmotionClick = (emotionKey: string) => {
     setSelectedEmotion(emotionKey);
   };
+
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0)
+      return [] as { label: string; score: number }[];
+    const keyMap: Record<string, keyof PeriodPoint> = {
+      happy: 'happyScore',
+      sad: 'sadScore',
+      angry: 'angryScore',
+      surprised: 'surprisedScore',
+      bored: 'boredScore',
+    };
+    const scoreKey = keyMap[selectedEmotion];
+    return data.map(p => {
+      const [, m, d] = p.date.split('-');
+      const label = `${m}-${d}`;
+      const raw = (p[scoreKey] as unknown as number) ?? 0;
+      const score = Math.round(raw * 100);
+      return { label, score };
+    });
+  }, [data, selectedEmotion]);
 
   return (
     <Container>
@@ -101,22 +85,24 @@ const BudgetLine = () => {
         ))}
       </EmotionSelector>
       <GraphContainer>
-        <ResponsiveContainer width="100%" height={120}>
-          <LineChart
-            data={emotionData[selectedEmotion as keyof typeof emotionData]}
-          >
-            <XAxis dataKey="day" hide />
-            <YAxis hide />
-            <Tooltip cursor={<CustomCursor />} />
-            <Line
-              type="monotone"
-              dataKey="score"
-              stroke={COLORS.blue}
-              strokeWidth={2}
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {!data || data.length === 0 ? (
+          <EmptyText>정보가 없습니다</EmptyText>
+        ) : (
+          <ResponsiveContainer width="100%" height={120}>
+            <LineChart data={chartData}>
+              <XAxis dataKey="label" />
+              <YAxis hide />
+              <Tooltip cursor={<CustomCursor />} />
+              <Line
+                type="monotone"
+                dataKey="score"
+                stroke={COLORS.blue}
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </GraphContainer>
     </Container>
   );
@@ -183,4 +169,13 @@ const Label = styled.div`
 
 const GraphContainer = styled.div`
   height: 120px;
+`;
+
+const EmptyText = styled.div`
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 0.9rem;
 `;

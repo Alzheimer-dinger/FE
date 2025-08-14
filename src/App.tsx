@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from 'react-router-dom';
 import styled from 'styled-components';
 import {
   Login,
@@ -14,13 +19,9 @@ import {
   CallWaiting,
   CallActive,
 } from '@pages/index';
-import { ScrollToTop } from '@components/common/index';
-import { useFCM } from '@hooks/useFCM';
+import { ProtectedRoute, ScrollToTop } from '@components/index';
 
 const App = () => {
-  // FCM 알림 권한 요청 + 토큰 발급 + 메시지 수신
-  useFCM();
-
   return (
     <Router>
       <Container>
@@ -32,19 +33,22 @@ const App = () => {
           <Route path="/signup-role" element={<SignupRole />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Call */}
-          <Route path="/call" element={<Call />} />
-          <Route path="/call-detail/:date" element={<RecordDetail />} />
-          <Route path="/call-waiting" element={<CallWaiting />} />
-          <Route path="/call-active" element={<CallActive />} />
+          <Route element={<ProtectedRoute />}>
+            {/* Call */}
+            <Route path="/call" element={<Call />} />
+            <Route path="/call-detail/:sessionId" element={<RecordDetail />} />
+            <Route path="/call-waiting" element={<CallWaiting />} />
+            <Route path="/call-active" element={<CallActive />} />
 
-          {/* Report */}
-          <Route path="/report" element={<Report />} />
+            {/* Report */}
+            <Route path="/report" element={<Report />} />
 
-          {/* MyPage */}
-          <Route path="/mypage" element={<Mypage />} />
-          <Route path="/mypage/edit" element={<ProfileEdit />} />
-          <Route path="/manage" element={<PatientGuardianManage />} />
+            {/* MyPage */}
+            <Route path="/mypage" element={<Mypage />} />
+            <Route path="/mypage/edit" element={<ProfileEdit />} />
+            <Route path="/manage" element={<PatientGuardianManage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Container>
     </Router>
