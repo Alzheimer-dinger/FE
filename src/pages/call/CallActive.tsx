@@ -21,7 +21,7 @@ import {
 
 const WS_SCHEME = window.location.protocol === 'https:' ? 'wss' : 'ws';
 const WS_HOST =
-  import.meta.env.VITE_SERVER_URL?.replace(/^https?:\/\//, '') ||
+  import.meta.env.VITE_WEBSOCKET_URL?.replace(/^https?:\/\//, '') ||
   'localhost:8765';
 const WS_PATH = '/ws/realtime';
 const SERVER_URL = `${WS_SCHEME}://${WS_HOST}${WS_PATH}`;
