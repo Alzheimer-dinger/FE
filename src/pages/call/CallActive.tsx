@@ -7,36 +7,148 @@
  * - useAudioStream 훅으로 마이크 소리 감지
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Button, ContentContainer, VoiceWave } from '@components/index';
 import { formatDuration, formatTime } from '@utils/formatDateTime';
 import { useAudioStream } from '@hooks/useAudioStream';
+import {
+  GeminiAPI,
+  StreamingAudioPlayer,
+  Microphone,
+} from '@services/gemini-client';
+
+const WS_SCHEME = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const WS_HOST =
+  import.meta.env.VITE_WEBSOCKET_URL?.replace(/^https?:\/\//, '') ||
+  'localhost:8765';
+const WS_PATH = '/ws/realtime';
+const SERVER_URL = `${WS_SCHEME}://${WS_HOST}${WS_PATH}`;
+const SEND_SAMPLE_RATE = 16000;
+const RECEIVE_SAMPLE_RATE = 24000;
 
 const CallActive = () => {
   const navigate = useNavigate();
-  const [transcript] = useState([
-    {
-      speaker: 'ai',
-      text: '안녕하세요. 저는 ai 000입니다. 반가워요! 오늘은 어떤 하루를 보냈나요?',
-    },
-  ]);
+
+  // 화면 표시용 자막 상태 (스트리밍 누적)
+  const [transcripts, setTranscripts] = useState<
+    { speaker: 'user' | 'ai'; text: string; final?: boolean }[]
+  >([]);
+
   const now = new Date();
   const time = formatTime(now);
   const isAudio = useAudioStream();
   const [duration, setDuration] = useState(0);
 
-  // 통화 시간 측정 시작
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDuration(prev => prev + 1);
-    }, 1000);
+  // 연결/오디오 객체
+  const geminiRef = useRef<GeminiAPI | null>(null);
+  const micRef = useRef<Microphone | null>(null);
+  const playerRef = useRef<StreamingAudioPlayer | null>(null);
 
-    return () => clearInterval(interval);
+  const [status, setStatus] = useState('연결 준비 중...');
+  const [isConnected, setIsConnected] = useState(false);
+
+  // 통화 시간
+  useEffect(() => {
+    if (!isConnected) return;
+    const id = setInterval(() => setDuration(prev => prev + 1), 1000);
+    return () => clearInterval(id);
+  }, [isConnected]);
+
+  // 컴포넌트 마운트 시 자동 연결
+  useEffect(() => {
+    let cancelled = false;
+
+    const start = async () => {
+      setStatus('토큰 확인 중...');
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setStatus('❌ accessToken이 없습니다 (localStorage)');
+        return;
+      }
+
+      // 객체 생성
+      playerRef.current = new StreamingAudioPlayer(RECEIVE_SAMPLE_RATE);
+      geminiRef.current = new GeminiAPI(SERVER_URL, token);
+      micRef.current = new Microphone(SEND_SAMPLE_RATE, (ab: ArrayBuffer) => {
+        geminiRef.current?.sendAudio(ab);
+      });
+
+      // 콜백 연결
+      const api = geminiRef.current;
+      api.onOpen = () => {
+        if (cancelled) return;
+        setStatus('✅ 연결됨 및 녹음 중...');
+        setIsConnected(true);
+      };
+      api.onClose = () => {
+        if (cancelled) return;
+        setStatus('🔌 연결 끊김');
+        setIsConnected(false);
+        stopAll();
+      };
+      api.onError = () => {
+        if (cancelled) return;
+        setStatus('❌ 웹소켓 오류');
+        setIsConnected(false);
+        stopAll();
+      };
+      api.onAudio = (b64: string) => playerRef.current?.receiveAudio(b64);
+      api.onInputTranscript = (t: string) => appendTranscript(t, 'user');
+      api.onOutputTranscript = (t: string) => appendTranscript(t, 'ai');
+      api.onTurnComplete = () => finalizeLast();
+
+      api.onInterrupt = () => playerRef.current?.interrupt();
+
+      // 연결 시작
+      try {
+        api.connect();
+        await micRef.current!.start();
+      } catch (e) {
+        setStatus('❌ 연결/마이크 시작 실패');
+        console.error('연결 실패:', e);
+        stopAll();
+      }
+    };
+
+    start();
+
+    // cleanup
+    return () => {
+      cancelled = true;
+      stopAll();
+    };
   }, []);
 
+  const appendTranscript = (text: string, who: 'user' | 'ai') => {
+    setTranscripts(prev => {
+      const last = prev[prev.length - 1];
+      if (last && last.speaker === who && !last.final) {
+        return [...prev.slice(0, -1), { ...last, text: last.text + text }];
+      }
+      return [...prev, { speaker: who, text }];
+    });
+  };
+
+  const finalizeLast = () => {
+    setTranscripts(prev =>
+      prev.length
+        ? prev.map((t, i) =>
+            i === prev.length - 1 ? { ...t, final: true } : t,
+          )
+        : prev,
+    );
+  };
+
+  const stopAll = () => {
+    micRef.current?.stop();
+    playerRef.current?.stop();
+  };
+
   const handleEnd = () => {
+    geminiRef.current?.close();
+    stopAll();
     navigate('/call', { replace: true });
   };
 
@@ -44,11 +156,11 @@ const CallActive = () => {
     <Container>
       <ContentContainer>
         <TimeMain>{time}</TimeMain>
-        <StatusText>통화 중</StatusText>
+        <StatusText>{status}</StatusText>
         <DurationText>{formatDuration(duration)}</DurationText>
 
         <TranscriptWrapper>
-          {transcript.map((item, idx) => (
+          {transcripts.map((item, idx) => (
             <Bubble key={idx} $isUser={item.speaker === 'user'}>
               {item.text}
             </Bubble>
@@ -96,6 +208,7 @@ const DurationText = styled.p`
 `;
 
 const TranscriptWrapper = styled.div`
+  width: 100%;
   background-color: #f5f5f5;
   border-radius: 1rem;
   padding: 1rem;

@@ -36,7 +36,7 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             {/* Call */}
             <Route path="/call" element={<Call />} />
-            <Route path="/call-detail/:date" element={<RecordDetail />} />
+            <Route path="/call-detail/:sessionId" element={<RecordDetail />} />
             <Route path="/call-waiting" element={<CallWaiting />} />
             <Route path="/call-active" element={<CallActive />} />
 

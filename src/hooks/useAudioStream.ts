@@ -39,7 +39,7 @@ export const useAudioStream = (): boolean => {
 
         analyser.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-        setIsSpeaking(volume > 30); // 감지 기준
+        setIsSpeaking(volume > 40); // 감지 기준
 
         animationId = requestAnimationFrame(checkVolume);
       };
