@@ -12,7 +12,9 @@ import { useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { useParams } from 'react-router-dom';
 import { ContentContainer, BackHeader } from '@components/common/index';
-import { toDotDate } from '@utils/calldate';
+import { formatDuration, toDotDate } from '@utils/calldate';
+import Loading from '@pages/Loading';
+import { requestGetFetch } from '@services/apiService';
 
 interface DetailResponse {
   sessionId: string;
@@ -31,35 +33,43 @@ interface DetailResponse {
 const RecordDetail = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [data, setData] = useState<DetailResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const formattedDate = toDotDate(data?.date || '');
   const timeRange = useMemo(() => {
     if (!data) return 'time';
-    return `${data.startTime || 'start'} ~ ${data.endTime || 'end'} (${data.durationSeconds || 'duration'}분)`;
+    return `${data.startTime || 'start'} ~ ${data.endTime || 'end'} (${formatDuration(
+      data.durationSeconds,
+    )})`;
   }, [data]);
 
   useEffect(() => {
     const run = async () => {
       try {
-        const token = localStorage.getItem('accessToken') ?? '';
-        const res = await fetch(
-          `${import.meta.env.VITE_SERVER_URL}/api/transcripts/${sessionId}`,
-          {
-            headers: {
-              Accept: 'application/json',
-              Authorization: token ? `Bearer ${token}` : '',
-            },
-          },
+        setError(null);
+        setLoading(true);
+
+        const json = await requestGetFetch(
+          `/api/transcripts/${encodeURIComponent(sessionId ?? '')}`,
         );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: DetailResponse = await res.json();
-        setData(json);
-      } catch {
+        const payload: DetailResponse = (json?.result ??
+          json) as DetailResponse;
+
+        setData(payload);
+        console.log('Fetched record detail (parsed):', payload);
+      } catch (e: any) {
+        console.error(e);
+        setError(e?.message ?? '상세 조회 실패');
         setData(null);
+      } finally {
+        setLoading(false);
       }
     };
-    run();
+    if (sessionId) run();
   }, [sessionId]);
+
+  if (loading) return <Loading />;
 
   return (
     <Container>
@@ -72,6 +82,12 @@ const RecordDetail = () => {
             <strong>날짜: </strong> {formattedDate}
             <br />
             <strong>시간: </strong> {timeRange}
+            <br />
+            {data?.summary && (
+              <>
+                <strong>요약: </strong> {data.summary}
+              </>
+            )}
           </CardText>
         </Card>
 
@@ -80,12 +96,17 @@ const RecordDetail = () => {
           <TranscriptWrapper>
             {data?.conversation?.length ? (
               data.conversation.map((item, idx) => (
-                <Bubble key={idx} $isUser={item.speaker === 'patient'}>
+                <Bubble
+                  key={idx}
+                  $isUser={String(item.speaker).toLowerCase() === 'patient'}
+                >
                   {item.content || '내용 없음'}
                 </Bubble>
               ))
             ) : (
-              <Bubble $isUser={false}>내용 없음</Bubble>
+              <Bubble $isUser={false}>
+                {error ? '불러오기 실패' : '내용 없음'}
+              </Bubble>
             )}
           </TranscriptWrapper>
         </Card>
