@@ -39,3 +39,15 @@ export const groupByMonth = <T extends { date: string }>(records: T[]) => {
       : bParsed.month - aParsed.month;
   });
 };
+
+/**
+ * ISO 날짜 문자열(YYYY-MM-DD)을 점 표기(YYYY.MM.DD)로 변환
+ *
+ * 사용화면 - RecordCard.tsx, RecordDetail.tsx
+ */
+
+export const toDotDate = (isoDate: string): string => {
+  if (!isoDate) return '';
+  const [y, m, d] = isoDate.split('-');
+  return [y, m, d].filter(Boolean).join('.');
+};

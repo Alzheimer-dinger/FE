@@ -5,16 +5,61 @@
  * - BackHeader로 상단 제목 표시
  * - 통화 정보(제목, 날짜, 시간) 요약 표시
  * - 대화 내용(transcript)을 채팅 bubble로 출력
- * - api 연결 전 더미데이터 표시: recordDetailData
+ * - api 연동 완료
  */
 
+import { useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
+import { useParams } from 'react-router-dom';
 import { ContentContainer, BackHeader } from '@components/common/index';
-import { recordDetailData } from '@constants/dummy';
+import { toDotDate } from '@utils/calldate';
+
+interface DetailResponse {
+  sessionId: string;
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  durationSeconds: string;
+  summary: string;
+  conversation: Array<{
+    speaker: 'patient' | 'assistant' | string;
+    content: string;
+  }>;
+}
 
 const RecordDetail = () => {
-  const record = recordDetailData[0];
-  const { title, date, time, transcript } = record;
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const [data, setData] = useState<DetailResponse | null>(null);
+
+  const formattedDate = toDotDate(data?.date || '');
+  const timeRange = useMemo(() => {
+    if (!data) return 'time';
+    return `${data.startTime || 'start'} ~ ${data.endTime || 'end'} (${data.durationSeconds || 'duration'}분)`;
+  }, [data]);
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const token = localStorage.getItem('accessToken') ?? '';
+        const res = await fetch(
+          `${import.meta.env.VITE_SERVER_URL}/api/transcripts/${sessionId}`,
+          {
+            headers: {
+              Accept: 'application/json',
+              Authorization: token ? `Bearer ${token}` : '',
+            },
+          },
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json: DetailResponse = await res.json();
+        setData(json);
+      } catch {
+        setData(null);
+      }
+    };
+    run();
+  }, [sessionId]);
 
   return (
     <Container>
@@ -23,20 +68,25 @@ const RecordDetail = () => {
         <Card>
           <CardTitle>통화 정보(요약본)</CardTitle>
           <CardText>
-            <strong>제목:</strong> {title} <br />
-            <strong>날짜:</strong> {date} <br />
-            <strong>시간:</strong> {time}
+            <strong>제목: </strong> {data?.title || 'title'} <br />
+            <strong>날짜: </strong> {formattedDate}
+            <br />
+            <strong>시간: </strong> {timeRange}
           </CardText>
         </Card>
 
         <Card>
           <CardTitle>통화 텍스트</CardTitle>
           <TranscriptWrapper>
-            {transcript.map((item, idx) => (
-              <Bubble key={idx} $isUser={item.speaker === 'user'}>
-                {item.text}
-              </Bubble>
-            ))}
+            {data?.conversation?.length ? (
+              data.conversation.map((item, idx) => (
+                <Bubble key={idx} $isUser={item.speaker === 'patient'}>
+                  {item.content || '내용 없음'}
+                </Bubble>
+              ))
+            ) : (
+              <Bubble $isUser={false}>내용 없음</Bubble>
+            )}
           </TranscriptWrapper>
         </Card>
       </ContentContainer>

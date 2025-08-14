@@ -13,26 +13,40 @@
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiChevronRight } from 'react-icons/fi';
+import { toDotDate } from '@utils/calldate';
 
 interface RecordCardProps {
+  sessionId: string;
   title: string;
   date: string;
-  time: string;
+  startTime: string;
+  endTime: string;
+  durationSeconds: string;
 }
 
-const RecordCard = ({ title, date, time }: RecordCardProps) => {
+const RecordCard = ({
+  sessionId,
+  title,
+  date,
+  startTime,
+  endTime,
+  durationSeconds,
+}: RecordCardProps) => {
   const navigate = useNavigate();
 
   const handleNextClick = () => {
-    navigate(`/call-detail/${date}`);
+    navigate(`/call-detail/${sessionId}`);
   };
+
+  const formattedDate = toDotDate(date);
+  const timeRange = `${startTime} ~ ${endTime} (${durationSeconds}분)`;
 
   return (
     <Card>
       <CardInfo>
-        <Title>{title}</Title>
-        <DateTime>{date}</DateTime>
-        <DateTime>{time}</DateTime>
+        <Title>{title || 'title'}</Title>
+        <DateTime>{formattedDate || 'date'}</DateTime>
+        <DateTime>{timeRange || 'time'}</DateTime>
       </CardInfo>
       <FiChevronRight
         size={24}
