@@ -17,3 +17,6 @@ export { default as Report } from './report/Report';
 export { default as Mypage } from './mypage/Mypage';
 export { default as ProfileEdit } from './mypage/ProfileEdit';
 export { default as PatientGuardianManage } from './mypage/PatientGuardianManage';
+
+// etc
+export { default as Loading } from './Loading';

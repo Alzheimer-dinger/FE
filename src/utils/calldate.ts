@@ -7,36 +7,41 @@
  * 사용화면 - Call.tsx
  */
 
-export const groupByMonth = <T extends { date: string }>(records: T[]) => {
+type WithDate = { date?: string };
+
+export const groupByMonth = <T extends WithDate>(records: T[]) => {
   const currentYear = new Date().getFullYear();
-  const groups: Record<string, T[]> = {};
+  const groups = new Map<string, T[]>();
 
-  records.forEach(record => {
-    const [year, month] = record.date.split('.');
-    const numericYear = Number(year);
-    const monthLabel = `${month.replace(/^0/, '')}월`;
-    const label =
-      numericYear === currentYear ? monthLabel : `${year}년 ${monthLabel}`;
+  const isoRe = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-    if (!groups[label]) groups[label] = [];
-    groups[label].push(record);
-  });
+  for (const r of records) {
+    let label = '날짜 미상';
 
-  const parseLabel = (label: string) => {
-    const match = label.match(/(\d{4})년 (\d+)월/) || [];
-    if (match.length === 3) {
-      return { year: Number(match[1]), month: Number(match[2]) };
-    } else {
-      return { year: currentYear, month: Number(label.replace('월', '')) };
+    if (r?.date && isoRe.test(r.date)) {
+      const [, y, m] = r.date.match(isoRe)!;
+      const year = Number(y);
+      const month = Number(m);
+      label = year === currentYear ? `${month}월` : `${year}년 ${month}월`;
     }
+
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label)!.push(r);
+  }
+
+  const sortKey = (label: string) => {
+    if (label === '날짜 미상') return { y: -Infinity, m: -Infinity };
+    const full = label.match(/^(\d{4})년\s+(\d{1,2})월$/);
+    if (full) return { y: Number(full[1]), m: Number(full[2]) };
+    const cur = label.match(/^(\d{1,2})월$/);
+    if (cur) return { y: currentYear, m: Number(cur[1]) };
+    return { y: -Infinity, m: -Infinity };
   };
 
-  return Object.entries(groups).sort(([a], [b]) => {
-    const aParsed = parseLabel(a);
-    const bParsed = parseLabel(b);
-    return bParsed.year !== aParsed.year
-      ? bParsed.year - aParsed.year
-      : bParsed.month - aParsed.month;
+  return [...groups.entries()].sort(([a], [b]) => {
+    const A = sortKey(a);
+    const B = sortKey(b);
+    return B.y !== A.y ? B.y - A.y : B.m - A.m;
   });
 };
 
@@ -48,6 +53,20 @@ export const groupByMonth = <T extends { date: string }>(records: T[]) => {
 
 export const toDotDate = (isoDate: string): string => {
   if (!isoDate) return '';
-  const [y, m, d] = isoDate.split('-');
-  return [y, m, d].filter(Boolean).join('.');
+  const m = isoDate.split('T')[0].match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return isoDate;
+  return `${m[1]}.${m[2]}.${m[3]}`;
+};
+
+/**
+ * 초 단위를 "00분 00초" 형식으로 변환
+ *
+ * 사용화면 - RecordCard.tsx, RecordDetail.tsx
+ */
+export const formatDuration = (secLike?: string) => {
+  const totalSec = Number(secLike ?? 0);
+  if (!Number.isFinite(totalSec) || totalSec <= 0) return '00분 00초';
+  const minutes = String(Math.floor(totalSec / 60)).padStart(2, '0');
+  const seconds = String(totalSec % 60).padStart(2, '0');
+  return `${minutes}분 ${seconds}초`;
 };
