@@ -10,7 +10,7 @@ export const useFCM = () => {
   useEffect(() => {
     // 서비스워커 등록
     navigator.serviceWorker
-      .register('/firebase-messaging-sw.js')
+      .register('/sw.js')
       .then(registration => {
         console.log('Service Worker registered:', registration);
 

@@ -1,3 +1,4 @@
+// FCM SDK 로드
 importScripts(
   'https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js',
 );
@@ -5,6 +6,7 @@ importScripts(
   'https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging-compat.js',
 );
 
+// Firebase 초기화
 firebase.initializeApp({
   apiKey: 'AIzaSyClSEPibfp07m4Qvjix1nJjzEwSEyOJK54',
   authDomain: 'alzheimerdinger-b9e53.firebaseapp.com',
