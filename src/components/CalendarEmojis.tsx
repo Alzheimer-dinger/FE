@@ -84,7 +84,7 @@ const CalendarEmojis = ({
     const mm = String(month + 1).padStart(2, '0');
     const dd = String(day).padStart(2, '0');
     const dateStr = `${year}-${mm}-${dd}`;
-    const it = byDate.get(dateStr) || {};
+    const it = byDate.get(dateStr) || { date: dateStr };
     const dominantType = computeDominantType(it);
     const emoji = emotionToEmoji(dominantType);
     return { day, dateStr, emoji };
