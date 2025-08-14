@@ -19,27 +19,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// SW 설치
 self.addEventListener('install', event => {
   console.log('[SW] Installed', event);
   self.skipWaiting();
 });
 
-// SW 활성화
 self.addEventListener('activate', event => {
   console.log('[SW] Activated', event);
-  return self.clients.claim();
+  self.clients.claim();
 });
 
-// fetch 이벤트
-self.addEventListener('fetch', event => {
-  console.log('[SW] fetched resource:', event.request.url);
-});
-
-// FCM 백그라운드 메시지 수신
+// 백그라운드 푸시 표시
 messaging.onBackgroundMessage(payload => {
   console.log('[SW] Received background message', payload);
-
   const { title, body, icon } = payload.notification || {};
   self.registration.showNotification(title || '알림', {
     body: body || '',
