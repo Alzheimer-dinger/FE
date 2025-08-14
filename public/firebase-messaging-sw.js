@@ -17,42 +17,40 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// install event
+// 새 SW가 즉시 페이지를 제어하도록 보장
 self.addEventListener('install', () => {
+  self.skipWaiting();
   console.log('[Service Worker] installed');
 });
 
-// activate event
-self.addEventListener('activate', e => {
-  console.log('[Service Worker] actived', e);
+self.addEventListener('activate', event => {
+  event.waitUntil(self.clients.claim());
+  console.log('[Service Worker] activated');
 });
 
-// fetch event
+// ---- fetch: 진단용 로그
 self.addEventListener('fetch', e => {
-  console.log('[Service Worker] fetched resource ' + e.request.url);
+  console.log('[Service Worker] fetched resource', e.request.url);
 });
 
-messaging.onBackgroundMessage(function (payload) {
-  console.log(
-    '[firebase-messaging-sw.js] Received background message ',
-    payload,
-  );
+// ---- 페이지 <-> SW 진단 메시지
+self.addEventListener('message', event => {
+  if (event?.data?.type === 'GET_SW_FIREBASE_OPTIONS') {
+    const options = firebase.app().options;
+    event.source?.postMessage({ type: 'SW_FIREBASE_OPTIONS', options });
+  }
+});
 
-  const { title, body } = payload.notification;
+// ---- FCM 백그라운드 메시지
+messaging.onBackgroundMessage(payload => {
+  console.log('[SW] Received background message', payload);
 
+  const { title, body, icon } = payload.notification || {};
+  const notificationTitle = title || '알림';
   const notificationOptions = {
-    body,
-    icon: 'icons/icon-24x24.svg',
+    body: body || '',
+    icon: icon || 'icons/icon-24x24.svg',
   };
 
-  self.registration.showNotification(title, notificationOptions);
-
-  self.addEventListener('message', event => {
-    if (event?.data?.type === 'GET_SW_FIREBASE_OPTIONS') {
-      // SW의 firebase.app().options를 페이지로 전달
-      const options = firebase.app().options;
-      // event.source는 같은 오리진 클라이언트
-      event.source?.postMessage({ type: 'SW_FIREBASE_OPTIONS', options });
-    }
-  });
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
