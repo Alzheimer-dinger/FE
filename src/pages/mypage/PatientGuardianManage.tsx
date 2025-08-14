@@ -15,7 +15,7 @@ import {
   deleteRelation,
   resendRelationRequest,
   type Relation,
-} from '@services/index';
+} from '@services/api';
 
 // 관계 상태를 UI 상태로 변환하는 함수
 const mapRelationStatus = (relation: Relation) => {

@@ -10,7 +10,7 @@ import {
 import DailySection from './DailySection';
 import TotalSection from './TotalSection';
 import { IoSettingsSharp } from 'react-icons/io5';
-import { getUserProfile, getRelations, type Relation } from '@services/index';
+import { getUserProfile, getRelations, type Relation } from '@services/api';
 
 const Report = () => {
   const [activeTab, setActiveTab] = useState('일간');

@@ -6,7 +6,7 @@ import {
   getLatestReport,
   getUserProfile,
   getRelations,
-} from '@services/index';
+} from '@services/api';
 import { useLocation } from 'react-router-dom';
 
 const TotalSection = () => {

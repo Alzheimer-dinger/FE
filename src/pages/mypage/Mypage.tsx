@@ -20,7 +20,7 @@ import {
   setReminder,
   getRelations,
   getUserProfile,
-} from '@services/index';
+} from '@services/api';
 
 const Mypage = () => {
   const navigate = useNavigate();

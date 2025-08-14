@@ -6,7 +6,7 @@ import {
   getDayAnalysis,
   type DayAnalysis,
   getUserProfile,
-} from '@services/index';
+} from '@services/api';
 
 const formatDateYYYYMMDD = (date: Date): string => {
   const yyyy = date.getFullYear();
