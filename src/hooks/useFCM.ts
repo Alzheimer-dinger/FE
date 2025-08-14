@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
-import { getToken, isSupported, onMessage } from 'firebase/messaging';
-import { messaging } from '@utils/firebase';
+import {
+  getToken as getFcmToken,
+  isSupported,
+  onMessage,
+} from 'firebase/messaging';
+import {
+  getInstallations,
+  getToken as getFisToken,
+} from 'firebase/installations';
+import { messaging, app as firebaseApp } from '@utils/firebase';
 
 /**
- * FCM 토큰을 발급하고, 포그라운드 메시지를 수신하는 훅
- * - 루트 스코프(/)에 있는 /firebase-messaging-sw.js 를 사용
- * - VAPID 키 공백/개행 문제 방지
- * - 푸시 구독(PushManager.subscribe) 선검증 → 막히면 원인 로그로 바로 확인
+ * 1) 표준 getToken()으로 시도
+ * 2) 실패 시, 수동 흐름(푸시 구독 → FIS 토큰 → fcmregistrations POST)으로 FCM 토큰 획득 시도
  */
-
 export const useFCM = () => {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
 
@@ -17,7 +22,7 @@ export const useFCM = () => {
 
     (async () => {
       try {
-        // 0) 환경/브라우저 지원 체크
+        // --- 환경 체크
         if (!(await isSupported())) {
           console.warn('[FCM] This environment does not support FCM.');
           return;
@@ -31,7 +36,7 @@ export const useFCM = () => {
           return;
         }
 
-        // 1) VAPID 키 확인 (공백/개행 제거)
+        // --- VAPID 키 확보 (공백/개행 제거)
         const VAPID_RAW = import.meta.env.VITE_FIREBASE_VAPID_KEY as
           | string
           | undefined;
@@ -41,25 +46,16 @@ export const useFCM = () => {
           return;
         }
 
-        // 2) 서비스워커 등록 (루트 고정 권장)
+        // --- SW 등록 (루트 고정)
         const swUrl = '/firebase-messaging-sw.js';
         const registration = await navigator.serviceWorker.register(swUrl, {
           scope: '/',
         });
         console.log('[FCM] SW registered with scope:', registration.scope);
-
-        // 중복/경합 확인용
-        const regs = await navigator.serviceWorker.getRegistrations();
-        console.log(
-          '[FCM] existing SW scopes:',
-          regs.map(r => r.scope),
-        );
-
-        // SW 활성화 대기
         await navigator.serviceWorker.ready;
         console.log('[FCM] SW ready');
 
-        // 3) 알림 권한 요청
+        // --- 권한
         const permission = await Notification.requestPermission();
         console.log('[FCM] Notification permission:', permission);
         if (permission !== 'granted') {
@@ -67,46 +63,66 @@ export const useFCM = () => {
           return;
         }
 
-        // 4) 푸시 구독 선검증
-        const appServerKey = urlBase64ToUint8Array(VAPID_KEY);
+        // --- 우선 푸시 구독(수동 경로에서도 필요)
+        const sub = await ensurePushSubscribed(registration, VAPID_KEY);
+        if (!sub) return; // 실패 로그는 함수 내부에서 출력
+
+        // --- 1차: 표준 getToken
         try {
-          const sub = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: appServerKey,
-          });
-          console.log('[FCM] push subscribe OK:', {
-            endpoint: sub.endpoint,
-            hasAuth: !!sub.getKey('auth'),
-            hasP256dh: !!sub.getKey('p256dh'),
-          });
+          const token = await getFcmToken(messaging, { vapidKey: VAPID_KEY });
+          if (token) {
+            console.log('[FCM] getToken OK:', token);
+            setFcmToken(token);
+          } else {
+            console.warn('[FCM] getToken returned empty.');
+          }
         } catch (e: any) {
-          console.error(
-            '[FCM] push subscribe FAILED:',
-            e?.name ?? 'Error',
-            e?.message ?? e,
-          );
-          // 흔한 에러:
-          // NotAllowedError: 브라우저/OS 알림 차단
-          // NotSupportedError: 브라우저/정책이 푸시 미지원
-          // AbortError/InvalidStateError: SW/스코프 충돌
-          return;
+          console.error('[FCM] getToken error:', e);
+
+          // --- 2차: 수동 경로(진단 + 우회)
+          const apiKey = import.meta.env.VITE_FIREBASE_API_KEY as
+            | string
+            | undefined;
+          if (!apiKey) {
+            console.error(
+              '[FCM] Missing API key (VITE_FIREBASE_API_KEY). Cannot try manual registration.',
+            );
+            return;
+          }
+
+          try {
+            const fisToken = await getFisAuthToken(firebaseApp);
+            if (!fisToken) {
+              console.error('[probe] No FIS auth token. Abort.');
+              return;
+            }
+
+            const manual = await manualWebpushRegistration(
+              sub,
+              fisToken,
+              apiKey,
+            );
+            if (manual.ok) {
+              console.log('[probe] fcmregistrations OK:', manual.token);
+              setFcmToken(manual.token!);
+            } else {
+              console.error(
+                '[probe] fcmregistrations FAILED:',
+                manual.status,
+                manual.body,
+              );
+            }
+          } catch (err) {
+            console.error('[probe] manual registration error:', err);
+          }
         }
 
-        // 5) 토큰 발급 (SDK가 루트 SW를 스스로 찾게 registration 인자 생략)
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-        if (token) {
-          console.log('[FCM] Token:', token);
-          setFcmToken(token);
-        } else {
-          console.warn('[FCM] No token available (getToken returned empty).');
-        }
-
-        // 6) 포그라운드 메시지 핸들러
+        // --- 포그라운드 메시지
         unsubscribeOnMessage = onMessage(messaging, payload => {
           console.log('[FCM] Foreground message:', payload);
         });
       } catch (err) {
-        console.error('[FCM] getToken error:', err);
+        console.error('[FCM] fatal error:', err);
       }
     })();
 
@@ -118,7 +134,109 @@ export const useFCM = () => {
   return fcmToken;
 };
 
-/** Base64URL → Uint8Array */
+/** PushManager.subscribe 보장 + 상세 로그 */
+async function ensurePushSubscribed(
+  registration: ServiceWorkerRegistration,
+  vapidKey: string,
+) {
+  try {
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+      console.log('[FCM] push already subscribed:', {
+        endpoint: existing.endpoint,
+        hasAuth: !!existing.getKey('auth'),
+        hasP256dh: !!existing.getKey('p256dh'),
+      });
+      return existing;
+    }
+
+    const sub = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+    });
+    console.log('[FCM] push subscribe OK:', {
+      endpoint: sub.endpoint,
+      hasAuth: !!sub.getKey('auth'),
+      hasP256dh: !!sub.getKey('p256dh'),
+    });
+    return sub;
+  } catch (e: any) {
+    console.error(
+      '[FCM] push subscribe FAILED:',
+      e?.name ?? 'Error',
+      e?.message ?? e,
+    );
+    return null;
+  }
+}
+
+/** FIS auth 토큰 획득 (Installations) */
+async function getFisAuthToken(app: any) {
+  const installations = getInstallations(app);
+  try {
+    const token = await getFisToken(installations, /* forceRefresh */ true);
+    console.log('[probe] FIS token OK (length):', token?.length);
+    return token;
+  } catch (e) {
+    console.error('[probe] FIS token FAILED:', e);
+    return null;
+  }
+}
+
+/** fcmregistrations 수동 호출 */
+async function manualWebpushRegistration(
+  sub: PushSubscription,
+  fisToken: string,
+  apiKey: string,
+): Promise<{ ok: boolean; status?: number; body?: string; token?: string }> {
+  // body 구성
+  const body = {
+    web: {
+      endpoint: sub.endpoint,
+      p256dh: b64(sub.getKey('p256dh')!),
+      auth: b64(sub.getKey('auth')!),
+    },
+  };
+
+  const url = `https://fcmregistrations.googleapis.com/v1/webpush/registrations?key=${encodeURIComponent(
+    apiKey,
+  )}`;
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // 핵심: FIS 토큰을 Authorization 헤더로
+      Authorization: `FIS ${fisToken}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const text = await resp.text();
+
+  // 성공 시 응답에 FCM token 포함
+  if (resp.ok) {
+    try {
+      const json = JSON.parse(text);
+      const token = json?.token as string | undefined;
+      return { ok: true, token };
+    } catch {
+      return { ok: true, body: text };
+    }
+  }
+
+  return { ok: false, status: resp.status, body: text };
+}
+
+/** util: Base64 encode Uint8Array */
+function b64(key: ArrayBuffer) {
+  const arr = new Uint8Array(key);
+  let s = '';
+  for (let i = 0; i < arr.length; i++) s += String.fromCharCode(arr[i]);
+  return btoa(s);
+}
+
+/** util: Base64URL → Uint8Array */
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
