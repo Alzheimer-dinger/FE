@@ -46,4 +46,13 @@ messaging.onBackgroundMessage(function (payload) {
   };
 
   self.registration.showNotification(title, notificationOptions);
+
+  self.addEventListener('message', event => {
+    if (event?.data?.type === 'GET_SW_FIREBASE_OPTIONS') {
+      // SW의 firebase.app().options를 페이지로 전달
+      const options = firebase.app().options;
+      // event.source는 같은 오리진 클라이언트
+      event.source?.postMessage({ type: 'SW_FIREBASE_OPTIONS', options });
+    }
+  });
 });
