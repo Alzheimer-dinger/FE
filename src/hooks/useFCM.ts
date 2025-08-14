@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getToken, onMessage } from 'firebase/messaging';
+import { getToken, onMessage, isSupported } from 'firebase/messaging';
 import { messaging } from '@utils/firebase';
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
@@ -8,41 +8,39 @@ export const useFCM = () => {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // 서비스워커 등록
-    navigator.serviceWorker
-      .register('/firebase-messaging-sw.js')
-      .then(registration => {
-        console.log('Service Worker registered:', registration);
+    (async () => {
+      if (!(await isSupported())) {
+        console.warn('[FCM] 브라우저 미지원');
+        return;
+      }
 
-        // 알림 권한 요청
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            // FCM 토큰 요청
-            getToken(messaging, {
-              vapidKey: VAPID_KEY,
-              serviceWorkerRegistration: registration,
-            })
-              .then(token => {
-                if (token) {
-                  console.log('FCM Token:', token);
-                  setFcmToken(token);
-                } else {
-                  console.warn('No token available');
-                }
-              })
-              .catch(err => console.error('Token error:', err));
-          } else {
-            console.warn('알림 권한 거부됨');
-          }
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.warn('[FCM] 알림 권한 거부');
+        return;
+      }
+
+      try {
+        // PWA에서 이미 등록된 sw.js 사용
+        const registration = await navigator.serviceWorker.ready;
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_KEY,
+          serviceWorkerRegistration: registration,
         });
-      })
-      .catch(err => {
-        console.error('Service Worker registration failed:', err);
-      });
+        if (token) {
+          console.log('[FCM] Token:', token);
+          setFcmToken(token);
+        } else {
+          console.warn('[FCM] No token available');
+        }
+      } catch (err) {
+        console.error('[FCM] getToken error:', err);
+      }
 
-    onMessage(messaging, payload => {
-      console.log('Foreground FCM message:', payload);
-    });
+      onMessage(messaging, payload => {
+        console.log('[FCM] Foreground message:', payload);
+      });
+    })();
   }, []);
 
   return fcmToken;
