@@ -17,40 +17,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// 새 SW가 즉시 페이지를 제어하도록 보장
-self.addEventListener('install', () => {
-  self.skipWaiting();
-  console.log('[Service Worker] installed');
-});
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 
-self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
-  console.log('[Service Worker] activated');
-});
-
-// ---- fetch: 진단용 로그
-self.addEventListener('fetch', e => {
-  console.log('[Service Worker] fetched resource', e.request.url);
-});
-
-// ---- 페이지 <-> SW 진단 메시지
-self.addEventListener('message', event => {
-  if (event?.data?.type === 'GET_SW_FIREBASE_OPTIONS') {
-    const options = firebase.app().options;
-    event.source?.postMessage({ type: 'SW_FIREBASE_OPTIONS', options });
-  }
-});
-
-// ---- FCM 백그라운드 메시지
 messaging.onBackgroundMessage(payload => {
-  console.log('[SW] Received background message', payload);
-
   const { title, body, icon } = payload.notification || {};
-  const notificationTitle = title || '알림';
-  const notificationOptions = {
+  self.registration.showNotification(title || '알림', {
     body: body || '',
     icon: icon || 'icons/icon-24x24.svg',
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 });
