@@ -11,7 +11,16 @@ import {
 } from '@components/index';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logoutUser, submitFeedback, getProfileImageUploadUrl, updateProfileImage, getReminder, setReminder, getRelations, getUserProfile } from '@services/index';
+import {
+  logoutUser,
+  submitFeedback,
+  getProfileImageUploadUrl,
+  updateProfileImage,
+  getReminder,
+  setReminder,
+  getRelations,
+  getUserProfile,
+} from '@services/index';
 
 const Mypage = () => {
   const navigate = useNavigate();
@@ -39,21 +48,20 @@ const Mypage = () => {
     name: '홍길동',
     email: 'abcd1234@abc.com',
   });
-  
+
   const [profileImage, setProfileImage] = useState('☁️'); // 기본 이미지: 구름
 
   // 컴포넌트 마운트 시 프로필 정보 및 리마인더 조회
   useEffect(() => {
     const fetchData = async () => {
       try {
-        
         // 프로필 정보 조회
         const profile = await getUserProfile();
         setProfileInfo({
           name: profile.name,
           email: profile.email,
         });
-        
+
         // 프로필 이미지 설정
         if (profile.imageUrl) {
           const url = String(profile.imageUrl).trim();
@@ -61,11 +69,15 @@ const Mypage = () => {
         } else {
           setProfileImage('☁️'); // 이미지 URL이 없으면 기본 구름
         }
-        
+
         // 리마인더 조회
         const reminderData = await getReminder();
         if (reminderData && reminderData.status === 'ACTIVE') {
-          const raw = (reminderData.fireTime || reminderData.time || '').toString();
+          const raw = (
+            reminderData.fireTime ||
+            reminderData.time ||
+            ''
+          ).toString();
           const [hStr, mStr] = raw.split(':');
           if (hStr && mStr) {
             let h = parseInt(hStr, 10);
@@ -101,12 +113,19 @@ const Mypage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
         const ext = (file.name.split('.').pop() || 'png').toLowerCase();
-        const { uploadUrl, fileKey: presignedFileKey, key: presignedKey, id: presignedId } = await getProfileImageUploadUrl(ext);
+        const {
+          uploadUrl,
+          fileKey: presignedFileKey,
+          key: presignedKey,
+          id: presignedId,
+        } = await getProfileImageUploadUrl(ext);
         console.log('[ProfileUpload] presigned URL received', {
           uploadUrl,
           fileKey: presignedFileKey || presignedKey || presignedId,
@@ -116,7 +135,10 @@ const Mypage = () => {
           fileSize: file.size,
         });
         const urlObj = new URL(uploadUrl);
-        const urlQueryKey = urlObj.searchParams.get('fileKey') || urlObj.searchParams.get('key') || undefined;
+        const urlQueryKey =
+          urlObj.searchParams.get('fileKey') ||
+          urlObj.searchParams.get('key') ||
+          undefined;
         // pathname 기반 키 추출 (S3/GCS 호환)
         const rawPath = decodeURIComponent(urlObj.pathname.replace(/^\/+/, ''));
         const firstPathSegment = rawPath.split('/')[0] || '';
@@ -124,7 +146,10 @@ const Mypage = () => {
           rawPath,
           rawPath.split('/').slice(1).join('/'),
         ].filter(Boolean);
-        const pathDerivedKey = pathCandidates.find(p => p.endsWith(file.name) || p.endsWith(`.${ext}`)) || pathCandidates[0];
+        const pathDerivedKey =
+          pathCandidates.find(
+            p => p.endsWith(file.name) || p.endsWith(`.${ext}`),
+          ) || pathCandidates[0];
         console.log('[ProfileUpload] derived keys from URL', {
           urlQueryKey,
           pathDerivedKey,
@@ -150,27 +175,50 @@ const Mypage = () => {
           statusText: uploadResponse.statusText,
           durationMs: Math.round(t1 - t0),
         });
-        
+
         if (uploadResponse.ok) {
           // URL 기반 키를 우선 사용하고, 이후 서버 제공 키를 고려합니다
-          let fileKey = urlQueryKey || pathDerivedKey || presignedFileKey || presignedKey || presignedId;
+          let fileKey =
+            urlQueryKey ||
+            pathDerivedKey ||
+            presignedFileKey ||
+            presignedKey ||
+            presignedId;
           if (!fileKey) {
             try {
               const uploadResult = await uploadResponse.clone().json();
-              fileKey = uploadResult.fileKey || uploadResult.key || uploadResult.id;
-              console.log('[ProfileUpload][PUT] parsed upload body for key', uploadResult);
+              fileKey =
+                uploadResult.fileKey || uploadResult.key || uploadResult.id;
+              console.log(
+                '[ProfileUpload][PUT] parsed upload body for key',
+                uploadResult,
+              );
             } catch {}
           }
           // 버킷명이 포함된 키라면 제거 (path-style URL 대응)
-          if (fileKey && firstPathSegment && fileKey.startsWith(firstPathSegment + '/')) {
+          if (
+            fileKey &&
+            firstPathSegment &&
+            fileKey.startsWith(firstPathSegment + '/')
+          ) {
             const stripped = fileKey.slice(firstPathSegment.length + 1);
-            if (stripped && (stripped.endsWith(file.name) || stripped.endsWith('.' + ext))) {
-              console.log('[ProfileUpload] stripping bucket prefix from key', { before: fileKey, after: stripped, bucket: firstPathSegment });
+            if (
+              stripped &&
+              (stripped.endsWith(file.name) || stripped.endsWith('.' + ext))
+            ) {
+              console.log('[ProfileUpload] stripping bucket prefix from key', {
+                before: fileKey,
+                after: stripped,
+                bucket: firstPathSegment,
+              });
               fileKey = stripped;
             }
           }
           if (!fileKey) throw new Error('파일 키를 찾을 수 없습니다.');
-          console.log('[ProfileUpload][POST] updateProfileImage with fileKey', fileKey);
+          console.log(
+            '[ProfileUpload][POST] updateProfileImage with fileKey',
+            fileKey,
+          );
           const updated = await updateProfileImage(fileKey);
           if (updated?.imageUrl) {
             setProfileImage(updated.imageUrl);
@@ -248,11 +296,9 @@ const Mypage = () => {
       <ContentContainer navMargin={true}>
         <ProfileSection>
           <ProfileImage onClick={handleProfileImageClick}>
-            {(
-              profileImage.startsWith('http') ||
-              profileImage.startsWith('data:') ||
-              profileImage.startsWith('blob:')
-            ) ? (
+            {profileImage.startsWith('http') ||
+            profileImage.startsWith('data:') ||
+            profileImage.startsWith('blob:') ? (
               <ProfileImgTag
                 src={profileImage}
                 alt="프로필"
@@ -294,25 +340,27 @@ const Mypage = () => {
             }
           />
 
-                     <SettingItem
-             icon="⏰"
-             iconBgColor="#ffebee"
-             text="리마인드 시간"
-             onClick={() => setShowTimeModal(true)}
-             rightElement={
-               remindTime ? (
-                 <RemindTimeContainer>
-                   <RemindTimeText>{remindTime}</RemindTimeText>
-                   <DeactivateButton onClick={(e) => {
-                     e.stopPropagation();
-                     handleReminderDeactivate();
-                   }}>
-                     해제
-                   </DeactivateButton>
-                 </RemindTimeContainer>
-               ) : null
-             }
-           />
+          <SettingItem
+            icon="⏰"
+            iconBgColor="#ffebee"
+            text="리마인드 시간"
+            onClick={() => setShowTimeModal(true)}
+            rightElement={
+              remindTime ? (
+                <RemindTimeContainer>
+                  <RemindTimeText>{remindTime}</RemindTimeText>
+                  <DeactivateButton
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleReminderDeactivate();
+                    }}
+                  >
+                    해제
+                  </DeactivateButton>
+                </RemindTimeContainer>
+              ) : null
+            }
+          />
 
           <SettingItem
             icon="🛡️"

@@ -15,7 +15,9 @@ import { getUserProfile, getRelations, type Relation } from '@services/index';
 const Report = () => {
   const [activeTab, setActiveTab] = useState('일간');
   const [showConnections, setShowConnections] = useState(false);
-  const [me, setMe] = useState<{ name: string; imageUrl?: string } | null>(null);
+  const [me, setMe] = useState<{ name: string; imageUrl?: string } | null>(
+    null,
+  );
   const [relations, setRelations] = useState<Relation[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,7 +62,6 @@ const Report = () => {
       }
     };
     ensureQuery();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const tabs = ['일간', '종합'];
@@ -71,8 +72,15 @@ const Report = () => {
       <ContentContainer navMargin={true}>
         {/* Tab Menu + Settings */}
         <TopBar>
-          <TabMenu tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-          <GearBtn onClick={() => setShowConnections(true)} aria-label="연결 보기">
+          <TabMenu
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          <GearBtn
+            onClick={() => setShowConnections(true)}
+            aria-label="연결 보기"
+          >
             <IoSettingsSharp size={22} color="#38006B" />
           </GearBtn>
         </TopBar>
@@ -85,22 +93,34 @@ const Report = () => {
         <ModalOverlay onClick={() => setShowConnections(false)}>
           <ModalCard onClick={e => e.stopPropagation()}>
             <ModalTitle>연결 정보</ModalTitle>
-            <ProfileRow onClick={() => { 
-              setShowConnections(false); 
-              const params = new URLSearchParams();
-              params.set('date', new Date().toISOString().split('T')[0]);
-              if (me?.name) {
-                params.set('userName', me.name);
-              }
-              navigate(`/report?${params.toString()}`); 
-            }}>
+            <ProfileRow
+              onClick={() => {
+                setShowConnections(false);
+                const params = new URLSearchParams();
+                params.set('date', new Date().toISOString().split('T')[0]);
+                if (me?.name) {
+                  params.set('userName', me.name);
+                }
+                navigate(`/report?${params.toString()}`);
+              }}
+            >
               <Avatar $img={me?.imageUrl}>{!me?.imageUrl && '🙂'}</Avatar>
               <NameText>{me?.name ?? '나'}</NameText>
             </ProfileRow>
             {relations
-              .filter(r => r.status !== 'DISCONNECTED' && r.status !== 'REQUESTED')
+              .filter(
+                r => r.status !== 'DISCONNECTED' && r.status !== 'REQUESTED',
+              )
               .map(r => (
-                <ProfileRow key={r.relationId} onClick={() => { setShowConnections(false); navigate(`/report?userId=${encodeURIComponent(r.patientCode)}`); }}>
+                <ProfileRow
+                  key={r.relationId}
+                  onClick={() => {
+                    setShowConnections(false);
+                    navigate(
+                      `/report?userId=${encodeURIComponent(r.patientCode)}`,
+                    );
+                  }}
+                >
                   <Avatar>{r.relationType === 'GUARDIAN' ? '🛡️' : '🧑‍⚕️'}</Avatar>
                   <NameText>{r.name}</NameText>
                 </ProfileRow>
@@ -138,7 +158,7 @@ const GearBtn = styled.button`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,7 +171,7 @@ const ModalCard = styled.div`
   background: #fff;
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 `;
 
 const ModalTitle = styled.h3`
@@ -171,7 +191,8 @@ const Avatar = styled.div<{ $img?: string }>`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: ${({ $img }) => ($img ? `url(${$img}) center/cover no-repeat` : '#f0f8ff')};
+  background: ${({ $img }) =>
+    $img ? `url(${$img}) center/cover no-repeat` : '#f0f8ff'};
   display: flex;
   align-items: center;
   justify-content: center;

@@ -12,22 +12,22 @@ const apiClient = axios.create({
 
 // 요청 인터셉터 - 토큰 자동 추가
 apiClient.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // 응답 인터셉터 - 토큰 만료 처리
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       const url: string = error.config?.url ?? '';
       const method: string = (error.config?.method || '').toLowerCase();
@@ -40,7 +40,7 @@ apiClient.interceptors.response.use(
       window.location.href = '/';
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // 로그아웃 API
@@ -59,7 +59,10 @@ export const logoutUser = async (): Promise<void> => {
 };
 
 // 피드백 등록 API
-export const submitFeedback = async (rating: string, reason: string): Promise<void> => {
+export const submitFeedback = async (
+  rating: string,
+  reason: string,
+): Promise<void> => {
   const response = await apiClient.post('/api/feedback', {
     rating,
     reason,
@@ -75,7 +78,9 @@ export interface ProfileUploadUrlResponse {
   id?: string;
 }
 
-export const getProfileImageUploadUrl = async (extension: string): Promise<ProfileUploadUrlResponse> => {
+export const getProfileImageUploadUrl = async (
+  extension: string,
+): Promise<ProfileUploadUrlResponse> => {
   console.log('[ProfileUpload][GET] requesting presigned URL', {
     baseURL: API_BASE_URL,
     extension,
@@ -90,12 +95,14 @@ export const getProfileImageUploadUrl = async (extension: string): Promise<Profi
 };
 
 // 프로필 이미지 업데이트 API (업데이트된 프로필 반환)
-export const updateProfileImage = async (fileKey: string): Promise<UserProfile> => {
+export const updateProfileImage = async (
+  fileKey: string,
+): Promise<UserProfile> => {
   const response = await apiClient.post('/api/images/profile', {
     fileKey,
   });
   const payload = response.data;
-  return (payload && payload.result) ? payload.result : payload;
+  return payload && payload.result ? payload.result : payload;
 };
 
 // 리마인더 조회 API
@@ -109,7 +116,9 @@ export const getReminder = async (): Promise<ReminderResponse | null> => {
   try {
     const response = await apiClient.get('/api/reminder');
     const payload = response.data;
-    return (payload && (payload as any).result) ? (payload as any).result : payload;
+    return payload && (payload as any).result
+      ? (payload as any).result
+      : payload;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       // 리마인더가 설정되지 않은 경우
@@ -153,7 +162,9 @@ export const getDayAnalysis = async (
       params: { date, userId },
     });
     const payload = response.data as any;
-    return (payload && payload.result) ? (payload.result as DayAnalysis) : (payload as DayAnalysis);
+    return payload && payload.result
+      ? (payload.result as DayAnalysis)
+      : (payload as DayAnalysis);
   } catch (error: any) {
     if (error?.response?.status === 404) {
       return null; // 데이터 없음
@@ -193,7 +204,7 @@ export const getPeriodAnalysis = async (
       params: { start, end, userId },
     });
     const payload = response.data as any;
-    return (payload && payload.result)
+    return payload && payload.result
       ? (payload.result as PeriodAnalysis)
       : (payload as PeriodAnalysis);
   } catch (error: any) {
@@ -222,7 +233,7 @@ export const getLatestReport = async (
       params: { periodEnd, userId },
     });
     const payload = response.data as any;
-    return (payload && payload.result)
+    return payload && payload.result
       ? (payload.result as LatestReport)
       : (payload as LatestReport);
   } catch (error: any) {
@@ -286,20 +297,34 @@ export interface ApiEnvelope<T> {
   result?: T;
 }
 
-export const sendRelationRequest = async (patientCode: string): Promise<ApiEnvelope<string>> => {
-  console.log('[Relation][SEND][REQUEST][service] /api/relations/send', { patientCode });
+export const sendRelationRequest = async (
+  patientCode: string,
+): Promise<ApiEnvelope<string>> => {
+  console.log('[Relation][SEND][REQUEST][service] /api/relations/send', {
+    patientCode,
+  });
   const response = await apiClient.post('/api/relations/send', { patientCode });
   const raw = response.data as any;
-  const envelope: ApiEnvelope<string> = (raw && typeof raw === 'object' && ('result' in raw || 'message' in raw))
-    ? raw as ApiEnvelope<string>
-    : { result: raw };
-  console.log('[Relation][SEND][RESPONSE][service] /api/relations/send', envelope);
+  const envelope: ApiEnvelope<string> =
+    raw && typeof raw === 'object' && ('result' in raw || 'message' in raw)
+      ? (raw as ApiEnvelope<string>)
+      : { result: raw };
+  console.log(
+    '[Relation][SEND][RESPONSE][service] /api/relations/send',
+    envelope,
+  );
   return envelope;
 };
 
 // 관계 요청 응답 API (승인/거절)
-export const replyToRelationRequest = async (counterId: string, status: 'ACCEPTED' | 'REJECTED'): Promise<void> => {
-  console.log('[Relation][REPLY][REQUEST] /api/relations/reply', { relationId: counterId, status });
+export const replyToRelationRequest = async (
+  counterId: string,
+  status: 'ACCEPTED' | 'REJECTED',
+): Promise<void> => {
+  console.log('[Relation][REPLY][REQUEST] /api/relations/reply', {
+    relationId: counterId,
+    status,
+  });
   await apiClient.patch('/api/relations/reply', undefined, {
     params: {
       relationId: counterId, // counterId를 relationId로 사용
@@ -310,7 +335,9 @@ export const replyToRelationRequest = async (counterId: string, status: 'ACCEPTE
 };
 
 // 관계 요청 재전송 API
-export const resendRelationRequest = async (relationId: string): Promise<any> => {
+export const resendRelationRequest = async (
+  relationId: string,
+): Promise<any> => {
   const token = localStorage.getItem('accessToken');
   console.log('[Relation][RESEND][REQUEST][service] /api/relations/resend', {
     relationId,
@@ -321,7 +348,10 @@ export const resendRelationRequest = async (relationId: string): Promise<any> =>
     const response = await apiClient.post('/api/relations/resend', {
       relationId,
     });
-    console.log('[Relation][RESEND][RESPONSE][service] /api/relations/resend', response.data);
+    console.log(
+      '[Relation][RESEND][RESPONSE][service] /api/relations/resend',
+      response.data,
+    );
     return response.data;
   } catch (err: any) {
     const status = err?.response?.status;
@@ -363,14 +393,16 @@ export const getUserProfile = async (): Promise<UserProfile> => {
   const response = await apiClient.get('/api/users/profile');
   // API가 { timestamp, code, message, result } 랩퍼를 사용하는 경우 대응
   const payload = response.data;
-  return (payload && payload.result) ? payload.result : payload;
+  return payload && payload.result ? payload.result : payload;
 };
 
 // 프로필 수정 API
-export const updateUserProfile = async (profileData: ProfileUpdateRequest): Promise<UserProfile> => {
+export const updateUserProfile = async (
+  profileData: ProfileUpdateRequest,
+): Promise<UserProfile> => {
   const response = await apiClient.patch('/api/users/profile', profileData);
   const payload = response.data;
-  return (payload && payload.result) ? payload.result : payload;
+  return payload && payload.result ? payload.result : payload;
 };
 
 export default apiClient;

@@ -51,7 +51,8 @@ const BudgetLine = ({ data }: Props) => {
   };
 
   const chartData = useMemo(() => {
-    if (!data || data.length === 0) return [] as { label: string; score: number }[];
+    if (!data || data.length === 0)
+      return [] as { label: string; score: number }[];
     const keyMap: Record<string, keyof PeriodPoint> = {
       happy: 'happyScore',
       sad: 'sadScore',
@@ -60,8 +61,8 @@ const BudgetLine = ({ data }: Props) => {
       bored: 'boredScore',
     };
     const scoreKey = keyMap[selectedEmotion];
-    return data.map((p) => {
-      const [y, m, d] = p.date.split('-');
+    return data.map(p => {
+      const [, m, d] = p.date.split('-');
       const label = `${m}-${d}`;
       const raw = (p[scoreKey] as unknown as number) ?? 0;
       const score = Math.round(raw * 100);
@@ -84,7 +85,7 @@ const BudgetLine = ({ data }: Props) => {
         ))}
       </EmotionSelector>
       <GraphContainer>
-        {(!data || data.length === 0) ? (
+        {!data || data.length === 0 ? (
           <EmptyText>정보가 없습니다</EmptyText>
         ) : (
           <ResponsiveContainer width="100%" height={120}>

@@ -8,28 +8,53 @@ import {
   TabMenu,
 } from '@components/index';
 import { GoPlus } from 'react-icons/go';
-import { 
-  getRelations, 
-  sendRelationRequest, 
-  replyToRelationRequest, 
+import {
+  getRelations,
+  sendRelationRequest,
+  replyToRelationRequest,
   deleteRelation,
   resendRelationRequest,
-  type Relation 
+  type Relation,
 } from '@services/index';
 
 // 관계 상태를 UI 상태로 변환하는 함수
 const mapRelationStatus = (relation: Relation) => {
   switch (relation.status) {
     case 'ACCEPTED':
-      return { label: '연결됨', color: '#B6F3D1', text: '#1B8E4B', status: 'connected' };
+      return {
+        label: '연결됨',
+        color: '#B6F3D1',
+        text: '#1B8E4B',
+        status: 'connected',
+      };
     case 'REQUESTED':
-      return { label: '요청됨', color: '#FFE9B6', text: '#C89A1B', status: 'requested' };
+      return {
+        label: '요청됨',
+        color: '#FFE9B6',
+        text: '#C89A1B',
+        status: 'requested',
+      };
     case 'REJECTED':
-      return { label: '거절됨', color: '#FFD6D6', text: '#E57373', status: 'disconnected' };
+      return {
+        label: '거절됨',
+        color: '#FFD6D6',
+        text: '#E57373',
+        status: 'disconnected',
+      };
     case 'DISCONNECTED':
-      return { label: '해제됨', color: '#FFD6D6', text: '#E57373', status: 'disconnected' };
+      return {
+        label: '해제됨',
+        color: '#FFD6D6',
+        text: '#E57373',
+        status: 'disconnected',
+      };
     default:
-      return { label: '알 수 없음', color: '#E0E0E0', text: '#757575', status: 'disconnected' };
+      return {
+        label: '알 수 없음',
+        color: '#E0E0E0',
+        text: '#757575',
+        status: 'disconnected',
+      };
   }
 };
 
@@ -65,7 +90,9 @@ const PatientGuardianManage = () => {
         console.log('[Relation][LIST][RESPONSE][UI] /api/relations', {
           durationMs: Math.round(t1 - t0),
           count: Array.isArray(relationsData) ? relationsData.length : 0,
-          sample: Array.isArray(relationsData) ? relationsData.slice(0, 3) : relationsData,
+          sample: Array.isArray(relationsData)
+            ? relationsData.slice(0, 3)
+            : relationsData,
         });
         setRelations(relationsData);
       } catch (error) {
@@ -74,10 +101,13 @@ const PatientGuardianManage = () => {
         const localRelations = localStorage.getItem('relations');
         if (localRelations) {
           const parsed = JSON.parse(localRelations);
-          console.log('[Relation][LIST][FALLBACK][UI] using localStorage relations', {
-            count: Array.isArray(parsed) ? parsed.length : 0,
-            sample: Array.isArray(parsed) ? parsed.slice(0, 3) : parsed,
-          });
+          console.log(
+            '[Relation][LIST][FALLBACK][UI] using localStorage relations',
+            {
+              count: Array.isArray(parsed) ? parsed.length : 0,
+              sample: Array.isArray(parsed) ? parsed.slice(0, 3) : parsed,
+            },
+          );
           setRelations(parsed);
         }
       } finally {
@@ -97,7 +127,10 @@ const PatientGuardianManage = () => {
   });
 
   // 관계 요청 응답 (수락/거절)
-  const handleRelationReply = async (relation: Relation, status: 'ACCEPTED' | 'REJECTED') => {
+  const handleRelationReply = async (
+    relation: Relation,
+    status: 'ACCEPTED' | 'REJECTED',
+  ) => {
     try {
       const relationId = (relation as any).relationId;
       console.log('[Relation][REPLY] using id', { relationId });
@@ -135,12 +168,18 @@ const PatientGuardianManage = () => {
       const t0 = performance.now();
       const result = await resendRelationRequest(relationId);
       const t1 = performance.now();
-      console.log('[Relation][RESEND][RESPONSE]', { durationMs: Math.round(t1 - t0), result });
+      console.log('[Relation][RESEND][RESPONSE]', {
+        durationMs: Math.round(t1 - t0),
+        result,
+      });
       // 목록 새로고침
       const updatedRelations = await getRelations();
       setRelations(updatedRelations);
       setConfirmModal(null);
-      alert((result && (result.message || result.result)) || '관계 요청을 재전송했습니다.');
+      alert(
+        (result && (result.message || result.result)) ||
+          '관계 요청을 재전송했습니다.',
+      );
     } catch (error) {
       console.error('[Relation][RESEND][ERROR]', error);
       alert('재전송에 실패했습니다.');
@@ -150,7 +189,9 @@ const PatientGuardianManage = () => {
   // 환자 추가 (관계 요청 전송)
   const handleAddPatient = async (patientCode: string) => {
     try {
-      console.log('[Relation][SEND][REQUEST] /api/relations/send', { patientCode });
+      console.log('[Relation][SEND][REQUEST] /api/relations/send', {
+        patientCode,
+      });
       const t0 = performance.now();
       const sendResult = await sendRelationRequest(patientCode);
       const t1 = performance.now();
@@ -164,7 +205,8 @@ const PatientGuardianManage = () => {
       setShowAddModal(false);
       setAddId('');
       setAddError('');
-      const serverMessage = (sendResult && (sendResult.message || sendResult.result)) || '';
+      const serverMessage =
+        (sendResult && (sendResult.message || sendResult.result)) || '';
       alert(serverMessage || '관계 요청이 전송되었습니다.');
       // 관계 목록 새로고침
       console.log('[Relation][LIST][REQUEST] /api/relations');
@@ -174,7 +216,9 @@ const PatientGuardianManage = () => {
       console.log('[Relation][LIST][RESPONSE] /api/relations', {
         durationMs: Math.round(listT1 - listT0),
         count: Array.isArray(updatedRelations) ? updatedRelations.length : 0,
-        sample: Array.isArray(updatedRelations) ? updatedRelations.slice(0, 3) : updatedRelations,
+        sample: Array.isArray(updatedRelations)
+          ? updatedRelations.slice(0, 3)
+          : updatedRelations,
       });
       setRelations(updatedRelations);
     } catch (error) {
@@ -201,37 +245,56 @@ const PatientGuardianManage = () => {
             <EmptyText>등록된 관계가 없습니다.</EmptyText>
           ) : (
             <CardList>
-              {filteredRelations.map((relation) => {
+              {filteredRelations.map(relation => {
                 const statusInfo = mapRelationStatus(relation);
                 const isRequested = relation.status === 'REQUESTED';
-                const initiatedByMe = relation.initiator !== relation.relationType; // 상대 타입과 다르면 내가 보낸 요청
+                const initiatedByMe =
+                  relation.initiator !== relation.relationType; // 상대 타입과 다르면 내가 보낸 요청
 
-                 return (isRequested && !initiatedByMe) ? (
-                  <Card key={(relation as any).relationId} style={{ position: 'relative' }}>
-                     <NBadge>N</NBadge>
-                     <CardLeft>
-                       <CharImg>🐥</CharImg>
-                     </CardLeft>
-                     <CardBody>
-                       <NameRow>
-                         <Name>{relation.name}</Name>
-                         <Role>{relation.relationType === 'GUARDIAN' ? '보호자' : '환자'}</Role>
-                       </NameRow>
-                       <Info>ID {relation.patientCode}</Info>
-                       <Info>요청 날짜: {new Date(relation.createdAt).toLocaleDateString()}</Info>
-                       <StatusRow>
-                         <StatusLeft>
-                          <AcceptBtn onClick={() => handleRelationReply(relation, 'ACCEPTED')}>
-                             수락
-                           </AcceptBtn>
-                          <RejectBtn onClick={() => handleRelationReply(relation, 'REJECTED')}>
-                             거절
-                           </RejectBtn>
-                         </StatusLeft>
-                       </StatusRow>
-                     </CardBody>
-                   </Card>
-                 ) : (
+                return isRequested && !initiatedByMe ? (
+                  <Card
+                    key={(relation as any).relationId}
+                    style={{ position: 'relative' }}
+                  >
+                    <NBadge>N</NBadge>
+                    <CardLeft>
+                      <CharImg>🐥</CharImg>
+                    </CardLeft>
+                    <CardBody>
+                      <NameRow>
+                        <Name>{relation.name}</Name>
+                        <Role>
+                          {relation.relationType === 'GUARDIAN'
+                            ? '보호자'
+                            : '환자'}
+                        </Role>
+                      </NameRow>
+                      <Info>ID {relation.patientCode}</Info>
+                      <Info>
+                        요청 날짜:{' '}
+                        {new Date(relation.createdAt).toLocaleDateString()}
+                      </Info>
+                      <StatusRow>
+                        <StatusLeft>
+                          <AcceptBtn
+                            onClick={() =>
+                              handleRelationReply(relation, 'ACCEPTED')
+                            }
+                          >
+                            수락
+                          </AcceptBtn>
+                          <RejectBtn
+                            onClick={() =>
+                              handleRelationReply(relation, 'REJECTED')
+                            }
+                          >
+                            거절
+                          </RejectBtn>
+                        </StatusLeft>
+                      </StatusRow>
+                    </CardBody>
+                  </Card>
+                ) : (
                   <Card key={(relation as any).relationId}>
                     <CardLeft>
                       <CharImg>🐥</CharImg>
@@ -239,15 +302,24 @@ const PatientGuardianManage = () => {
                     <CardBody>
                       <NameRow>
                         <Name>{relation.name}</Name>
-                        <Role>{relation.relationType === 'GUARDIAN' ? '보호자' : '환자'}</Role>
+                        <Role>
+                          {relation.relationType === 'GUARDIAN'
+                            ? '보호자'
+                            : '환자'}
+                        </Role>
                       </NameRow>
                       <Info>ID {relation.patientCode}</Info>
                       <Info>
-                        {relation.status === 'ACCEPTED' ? '연결 날짜' : '요청 날짜'}: {new Date(relation.createdAt).toLocaleDateString()}
+                        {relation.status === 'ACCEPTED'
+                          ? '연결 날짜'
+                          : '요청 날짜'}
+                        : {new Date(relation.createdAt).toLocaleDateString()}
                       </Info>
                       <StatusRow>
                         <StatusLeft>
-                          <StatusBadge $status={statusInfo.status as StatusType}>
+                          <StatusBadge
+                            $status={statusInfo.status as StatusType}
+                          >
                             {statusInfo.label}
                           </StatusBadge>
                         </StatusLeft>
@@ -255,7 +327,10 @@ const PatientGuardianManage = () => {
                           {relation.status === 'ACCEPTED' && (
                             <ActionBtn
                               onClick={() =>
-                                setConfirmModal({ type: 'disconnect', relation })
+                                setConfirmModal({
+                                  type: 'disconnect',
+                                  relation,
+                                })
                               }
                             >
                               해제
@@ -264,21 +339,29 @@ const PatientGuardianManage = () => {
                           {isRequested && initiatedByMe && (
                             <ActionBtn
                               onClick={() =>
-                                setConfirmModal({ type: 'disconnect', relation })
+                                setConfirmModal({
+                                  type: 'disconnect',
+                                  relation,
+                                })
                               }
                             >
                               해제
                             </ActionBtn>
                           )}
-                          {(relation.status === 'REJECTED' || relation.status === 'DISCONNECTED') && initiatedByMe && (
-                            <ActionBtn
-                              onClick={() =>
-                                setConfirmModal({ type: 'reconnect', relation })
-                              }
-                            >
-                              재연결
-                            </ActionBtn>
-                          )}
+                          {(relation.status === 'REJECTED' ||
+                            relation.status === 'DISCONNECTED') &&
+                            initiatedByMe && (
+                              <ActionBtn
+                                onClick={() =>
+                                  setConfirmModal({
+                                    type: 'reconnect',
+                                    relation,
+                                  })
+                                }
+                              >
+                                재연결
+                              </ActionBtn>
+                            )}
                         </StatusRight>
                       </StatusRow>
                     </CardBody>
@@ -305,7 +388,10 @@ const PatientGuardianManage = () => {
           }}
           onAdd={() => {
             const normalizedId = addId.trim();
-            console.log('[Relation][ADD][VALIDATE] input', { raw: addId, normalized: normalizedId });
+            console.log('[Relation][ADD][VALIDATE] input', {
+              raw: addId,
+              normalized: normalizedId,
+            });
             // 알파벳/숫자 6~20자 허용 (예: 0MM7144MV34K8 등)
             if (!/^[A-Za-z0-9]{6,20}$/.test(normalizedId)) {
               console.warn('[Relation][ADD][VALIDATE] invalid format');

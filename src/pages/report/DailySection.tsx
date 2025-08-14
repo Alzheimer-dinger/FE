@@ -2,7 +2,11 @@ import styled from 'styled-components';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { CalendarEmojis, EmotionScoreCircle } from '@components/index';
-import { getDayAnalysis, type DayAnalysis, getUserProfile } from '@services/index';
+import {
+  getDayAnalysis,
+  type DayAnalysis,
+  getUserProfile,
+} from '@services/index';
 
 const formatDateYYYYMMDD = (date: Date): string => {
   const yyyy = date.getFullYear();
@@ -36,7 +40,7 @@ const DailySection = () => {
         const d = new Date(selectedDate);
         setYear(d.getFullYear());
         setMonth(d.getMonth());
-      } catch (e) {
+      } catch {
         setError('서버 연결에 실패했습니다');
         setAnalysis(null);
       } finally {
@@ -57,7 +61,9 @@ const DailySection = () => {
       { type: 'SURPRISED', score: analysis.surprisedScore, pr: 4 },
       { type: 'BORED', score: analysis.boredScore, pr: 5 },
     ];
-    arr.sort((a, b) => (Math.abs(a.score - b.score) < 0.001 ? a.pr - b.pr : b.score - a.score));
+    arr.sort((a, b) =>
+      Math.abs(a.score - b.score) < 0.001 ? a.pr - b.pr : b.score - a.score,
+    );
     return { type: arr[0].type, percent: Math.round(arr[0].score * 100) };
   }, [analysis]);
 
@@ -110,7 +116,10 @@ const DailySection = () => {
           <ErrorText>{error}</ErrorText>
         ) : analysis ? (
           <>
-            <EmotionScoreCircle score={dominant.percent} centerEmoji={centerEmoji} />
+            <EmotionScoreCircle
+              score={dominant.percent}
+              centerEmoji={centerEmoji}
+            />
             <ScoreDesc>{labelText}</ScoreDesc>
           </>
         ) : (
@@ -163,5 +172,3 @@ const EmptyText = styled.p`
   color: #999;
   text-align: center;
 `;
-
-// (중복 정의 제거)

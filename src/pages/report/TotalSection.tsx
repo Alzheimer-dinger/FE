@@ -1,20 +1,41 @@
 import styled from 'styled-components';
 import { useMemo, useState, useEffect } from 'react';
 import { BudgetLine } from '@components/index';
-import { getPeriodAnalysis, getLatestReport, getUserProfile, getRelations } from '@services/index';
+import {
+  getPeriodAnalysis,
+  getLatestReport,
+  getUserProfile,
+  getRelations,
+} from '@services/index';
 import { useLocation } from 'react-router-dom';
 
 const TotalSection = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<'최근 1주일' | '최근 1달' | '사용자 설정'>('최근 1주일');
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    '최근 1주일' | '최근 1달' | '사용자 설정'
+  >('최근 1주일');
   const [showCustom, setShowCustom] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [timeline, setTimeline] = useState<Array<{ date: string; happyScore: number; sadScore: number; angryScore: number; surprisedScore: number; boredScore: number }>>([]);
+  const [timeline, setTimeline] = useState<
+    Array<{
+      date: string;
+      happyScore: number;
+      sadScore: number;
+      angryScore: number;
+      surprisedScore: number;
+      boredScore: number;
+    }>
+  >([]);
   const [totalParticipate, setTotalParticipate] = useState<number | null>(null);
   const [averageCallTime, setAverageCallTime] = useState<string | null>(null);
-  const [latestReport, setLatestReport] = useState<{ reportId: string; userId: string; createdAt: string; report: string } | null>(null);
+  const [latestReport, setLatestReport] = useState<{
+    reportId: string;
+    userId: string;
+    createdAt: string;
+    report: string;
+  } | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [patientName, setPatientName] = useState<string>('');
 
@@ -25,7 +46,7 @@ const TotalSection = () => {
 
   const toDate = (value: string) => {
     if (!value) return null;
-    const [y, m, d] = value.split('-').map((v) => Number(v));
+    const [y, m, d] = value.split('-').map(v => Number(v));
     if (!y || !m || !d) return null;
     return new Date(y, m - 1, d);
   };
@@ -82,7 +103,7 @@ const TotalSection = () => {
   };
 
   const participationDisplay = useMemo(() => {
-    if (totalParticipate == null) return '--회';
+    if (totalParticipate === null) return '--회';
     let totalDays = daysDiffInclusive(startDate, endDate);
     if (selectedPeriod === '최근 1주일') totalDays = 7;
     if (selectedPeriod === '최근 1달') totalDays = 30;
@@ -91,7 +112,7 @@ const TotalSection = () => {
   }, [totalParticipate, startDate, endDate, selectedPeriod]);
 
   const riskScore = useMemo(() => {
-    if (totalParticipate == null || totalParticipate <= 0) return null;
+    if (totalParticipate === null || totalParticipate <= 0) return null;
     let totalDays = daysDiffInclusive(startDate, endDate);
     if (selectedPeriod === '최근 1주일') totalDays = 7;
     if (selectedPeriod === '최근 1달') totalDays = 30;
@@ -125,26 +146,26 @@ const TotalSection = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // overrideUserId가 없으면 현재 로그인한 사용자의 ID 사용
       let targetUserId = overrideUserId;
       if (!targetUserId) {
         try {
           const profile = await getUserProfile();
           targetUserId = profile.patientCode || profile.userId;
-        } catch (err) {
+        } catch {
           setTimeline([]);
           setError('사용자 정보를 가져올 수 없습니다');
           return;
         }
       }
-      
+
       if (!targetUserId) {
         setTimeline([]);
         setError('연결된 사용자가 없습니다');
         return;
       }
-      
+
       const res = await getPeriodAnalysis(s, e, targetUserId);
       if (!res) {
         setTimeline([]);
@@ -155,7 +176,7 @@ const TotalSection = () => {
       setTimeline(res.emotionTimeline || []);
       setTotalParticipate(res.totalParticipate ?? null);
       setAverageCallTime(res.averageCallTime ?? null);
-      
+
       // 기간 데이터 로딩 후 종합보고서도 함께 로딩
       fetchLatestReport(e, targetUserId);
     } catch (err: any) {
@@ -185,19 +206,24 @@ const TotalSection = () => {
       if (overrideUserId) {
         try {
           const profile = await getUserProfile();
-          if (profile.patientCode === overrideUserId || profile.userId === overrideUserId) {
+          if (
+            profile.patientCode === overrideUserId ||
+            profile.userId === overrideUserId
+          ) {
             setPatientName(profile.name);
           } else {
             // 연결된 환자 정보 가져오기
             const relations = await getRelations();
-            const patient = relations.find((r: any) => r.patientCode === overrideUserId);
+            const patient = relations.find(
+              (r: any) => r.patientCode === overrideUserId,
+            );
             if (patient) {
               setPatientName(patient.name);
             } else {
               setPatientName('환자');
             }
           }
-        } catch (err) {
+        } catch {
           setPatientName('환자');
         }
       } else if (userName) {
@@ -207,7 +233,7 @@ const TotalSection = () => {
         setPatientName('나');
       }
     };
-    
+
     const loadReport = async () => {
       // 종합보고서 로딩 (overrideUserId가 없으면 현재 사용자 ID 사용)
       if (endDate) {
@@ -225,7 +251,7 @@ const TotalSection = () => {
         }
       }
     };
-    
+
     loadPatientInfo();
     loadReport();
   }, [overrideUserId, endDate, userName]);
@@ -264,7 +290,7 @@ const TotalSection = () => {
                 type="date"
                 value={startDate}
                 max={endDate ? endDate : ''}
-                onChange={(e) => {
+                onChange={e => {
                   const next = e.target.value;
                   setStartDate(next);
                   if (endDate && next) {
@@ -289,7 +315,7 @@ const TotalSection = () => {
                 value={endDate}
                 min={startDate ? startDate : ''}
                 max={startDate ? maxEndForStart : ''}
-                onChange={(e) => {
+                onChange={e => {
                   const next = e.target.value;
                   setEndDate(next);
                   if (startDate && next) {
@@ -309,8 +335,16 @@ const TotalSection = () => {
             </RangeRow>
             <RangeHint>최대 1달까지 선택 가능합니다.</RangeHint>
             <Actions>
-              <CancelBtn type="button" onClick={handleCancel}>취소</CancelBtn>
-              <ConfirmBtn type="button" disabled={!isRangeValid} onClick={handleConfirm}>확인</ConfirmBtn>
+              <CancelBtn type="button" onClick={handleCancel}>
+                취소
+              </CancelBtn>
+              <ConfirmBtn
+                type="button"
+                disabled={!isRangeValid}
+                onClick={handleConfirm}
+              >
+                확인
+              </ConfirmBtn>
             </Actions>
           </CustomRangePanel>
         )}
@@ -355,9 +389,7 @@ const TotalSection = () => {
           <ReportContent>{latestReport.report}</ReportContent>
         </ResultBox>
       ) : (
-        <ResultBox>
-          해당 기간의 종합 보고서가 없습니다.
-        </ResultBox>
+        <ResultBox>해당 기간의 종합 보고서가 없습니다.</ResultBox>
       )}
     </TotalContent>
   );

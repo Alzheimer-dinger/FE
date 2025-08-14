@@ -15,6 +15,7 @@ type Props = {
   month: number; // 0-indexed (0 = Jan)
   data: MonthlyEmotionDataItem[];
   selectedDate?: string; // YYYY-MM-DD
+  // eslint-disable-next-line no-unused-vars
   onSelectDate?: (date: string) => void;
 };
 
@@ -35,14 +36,16 @@ const emotionToEmoji = (type?: string): string => {
   }
 };
 
-const computeDominantType = (item: MonthlyEmotionDataItem): string | undefined => {
+const computeDominantType = (
+  item: MonthlyEmotionDataItem,
+): string | undefined => {
   // 점수 기반 우선순위 계산 (happy > sad > angry > surprised > bored)
   if (
-    item.happyScore != null ||
-    item.sadScore != null ||
-    item.angryScore != null ||
-    item.surprisedScore != null ||
-    item.boredScore != null
+    item.happyScore !== null ||
+    item.sadScore !== null ||
+    item.angryScore !== null ||
+    item.surprisedScore !== null ||
+    item.boredScore !== null
   ) {
     const arr = [
       { t: 'HAPPY', s: item.happyScore ?? 0, p: 1 },
@@ -51,7 +54,9 @@ const computeDominantType = (item: MonthlyEmotionDataItem): string | undefined =
       { t: 'SURPRISED', s: item.surprisedScore ?? 0, p: 4 },
       { t: 'BORED', s: item.boredScore ?? 0, p: 5 },
     ];
-    arr.sort((a, b) => (Math.abs(a.s - b.s) < 0.000001 ? a.p - b.p : b.s - a.s));
+    arr.sort((a, b) =>
+      Math.abs(a.s - b.s) < 0.000001 ? a.p - b.p : b.s - a.s,
+    );
     return arr[0].s > 0 ? arr[0].t : undefined;
   }
   // 점수가 없다면 emotionType 사용
@@ -59,9 +64,16 @@ const computeDominantType = (item: MonthlyEmotionDataItem): string | undefined =
 };
 
 // Helper to get days in given month
-const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+const getDaysInMonth = (year: number, month: number) =>
+  new Date(year, month + 1, 0).getDate();
 
-const CalendarEmojis = ({ year, month, data, selectedDate, onSelectDate }: Props) => {
+const CalendarEmojis = ({
+  year,
+  month,
+  data,
+  selectedDate,
+  onSelectDate,
+}: Props) => {
   const daysInMonth = getDaysInMonth(year, month);
 
   const byDate = new Map<string, MonthlyEmotionDataItem>();
@@ -79,15 +91,18 @@ const CalendarEmojis = ({ year, month, data, selectedDate, onSelectDate }: Props
   });
 
   const firstDayOfWeek = new Date(year, month, 1).getDay();
-  const cells: Array<{ day: number; dateStr: string; emoji: string } | null> = [];
+  const cells: Array<{ day: number; dateStr: string; emoji: string } | null> =
+    [];
   for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
   cells.push(...days);
   while (cells.length % 7 !== 0) cells.push(null);
 
-  const weeks: typeof cells[] = [];
+  const weeks: (typeof cells)[] = [];
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
-  const handleClick = (cell: { day: number; dateStr: string; emoji: string } | null) => {
+  const handleClick = (
+    cell: { day: number; dateStr: string; emoji: string } | null,
+  ) => {
     if (cell && onSelectDate) onSelectDate(cell.dateStr);
   };
 
