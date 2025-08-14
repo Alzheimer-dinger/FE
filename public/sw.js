@@ -19,22 +19,33 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-self.addEventListener('install', event => {
-  console.log('[SW] Installed', event);
-  self.skipWaiting();
+// install event
+self.addEventListener('install', () => {
+  console.log('[Service Worker] installed');
 });
 
-self.addEventListener('activate', event => {
-  console.log('[SW] Activated', event);
-  self.clients.claim();
+// activate event
+self.addEventListener('activate', e => {
+  console.log('[Service Worker] actived', e);
 });
 
-// 백그라운드 푸시 표시
-messaging.onBackgroundMessage(payload => {
-  console.log('[SW] Received background message', payload);
-  const { title, body, icon } = payload.notification || {};
-  self.registration.showNotification(title || '알림', {
-    body: body || '',
-    icon: icon || '/icons/icon-192x192.png',
-  });
+// fetch event
+self.addEventListener('fetch', e => {
+  console.log('[Service Worker] fetched resource ' + e.request.url);
+});
+
+messaging.onBackgroundMessage(function (payload) {
+  console.log(
+    '[firebase-messaging-sw.js] Received background message ',
+    payload,
+  );
+
+  const { title, body } = payload.notification;
+
+  const notificationOptions = {
+    body,
+    icon: 'icons/icon-24x24.svg',
+  };
+
+  self.registration.showNotification(title, notificationOptions);
 });
