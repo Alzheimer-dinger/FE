@@ -20,6 +20,7 @@ import {
   CallActive,
 } from '@pages/index';
 import { ProtectedRoute, ScrollToTop } from '@components/index';
+import DebugFCM from '@pages/DebugFCM';
 
 const App = () => {
   return (
@@ -47,6 +48,8 @@ const App = () => {
             <Route path="/mypage" element={<Mypage />} />
             <Route path="/mypage/edit" element={<ProfileEdit />} />
             <Route path="/manage" element={<PatientGuardianManage />} />
+
+            <Route path="/debug" element={<DebugFCM />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
