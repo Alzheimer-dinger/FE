@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { createGlobalStyle } from 'styled-components';
-import '@utils/setupFetchInterceptor';
+// import '@utils/setupFetchInterceptor';
 
 // Firebase SDK 디버그 로그
 import { setLogLevel } from 'firebase/app';
