@@ -6,9 +6,6 @@ import {
 } from 'firebase/messaging';
 import { messaging } from '@utils/firebase';
 
-// firebaseConfig는 네 utils/firebase에서 initializeApp 한 그 값
-// 필요하면 여기서 불러오거나 아래 REST 함수에서 messaging.app.options로 읽음
-
 export const useFCM = () => {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
 
@@ -17,97 +14,121 @@ export const useFCM = () => {
 
     (async () => {
       try {
-        if (!(await isSupported())) return;
-        if (!window.isSecureContext) return;
-        if (!('Notification' in window)) return;
-
-        const VAPID = (
-          import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined
-        )?.trim();
-        if (!VAPID) {
-          console.error('[FCM] Missing VAPID');
+        // 환경 체크
+        if (!(await isSupported())) {
+          console.warn('[FCM] This environment does not support FCM.');
+          return;
+        }
+        if (!window.isSecureContext) {
+          console.error('[FCM] Requires HTTPS (secure context).');
+          return;
+        }
+        if (!('Notification' in window)) {
+          console.error('[FCM] Notification API not available.');
           return;
         }
 
-        // SW 등록: 루트 고정
+        // .env
+        const VAPID = (
+          import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined
+        )?.trim();
+        const API_KEY = (
+          import.meta.env.VITE_FIREBASE_API_KEY as string | undefined
+        )?.trim();
+        const APP_ID = (
+          import.meta.env.VITE_FIREBASE_APP_ID as string | undefined
+        )?.trim();
+        const PROJECT_ID = (
+          import.meta.env.VITE_FIREBASE_PROJECT_ID as string | undefined
+        )?.trim();
+
+        if (!VAPID) {
+          console.error('[FCM] Missing VITE_FIREBASE_VAPID_KEY');
+          return;
+        }
+        if (!API_KEY || !APP_ID || !PROJECT_ID) {
+          console.error('[FCM] Missing apiKey/appId/projectId in .env');
+          return;
+        }
+
+        // SW 등록(루트 고정) & ready
         const reg = await navigator.serviceWorker.register(
           '/firebase-messaging-sw.js',
           { scope: '/' },
         );
+        console.log('[FCM] SW registered with scope:', reg.scope);
         await navigator.serviceWorker.ready;
+        console.log('[FCM] SW ready');
 
         // 권한
         const perm = await Notification.requestPermission();
+        console.log('[FCM] Notification permission:', perm);
         if (perm !== 'granted') {
-          console.warn('[FCM] permission not granted');
+          console.warn('[FCM] Permission not granted.');
           return;
         }
 
-        // 푸시 구독(있으면 재사용)
+        // 푸시 구독 보장(있으면 재사용)
         const sub =
           (await reg.pushManager.getSubscription()) ??
           (await reg.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(VAPID),
           }));
+        console.log('[FCM] push subscription OK:', {
+          endpoint: sub.endpoint,
+          hasAuth: !!sub.getKey('auth'),
+          hasP256dh: !!sub.getKey('p256dh'),
+        });
 
-        // 1) 표준 경로
+        // 1) 표준 경로: registration을 반드시 명시!
         try {
-          const token = await getFcmToken(messaging, { vapidKey: VAPID });
+          const token = await getFcmToken(messaging, {
+            vapidKey: VAPID,
+            serviceWorkerRegistration: reg,
+          });
           if (token) {
-            setFcmToken(token);
             console.log('[FCM] getToken OK');
+            setFcmToken(token);
+            // 표준 경로 성공이면 종료
+            return;
           }
+          console.warn('[FCM] getToken returned empty.');
         } catch (e) {
           console.warn('[FCM] getToken failed → try REST fallback', e);
-
-          // 2) REST 우회: FIS → FCM 등록
-          const fb = (messaging as any).app?.options || {};
-          const apiKey: string | undefined =
-            (
-              import.meta.env.VITE_FIREBASE_API_KEY as string | undefined
-            )?.trim() || fb.apiKey;
-          const appId: string | undefined = fb.appId;
-          const projectId: string | undefined = fb.projectId;
-
-          if (!apiKey || !appId || !projectId) {
-            console.error('[probe] missing apiKey/appId/projectId');
-            return;
-          }
-
-          // 2-1) Installations 생성 (authToken 획득)
-          const fis = await createInstallationViaRest({
-            apiKey,
-            appId,
-            projectId,
-          });
-          if (!fis?.authToken) {
-            console.error('[probe] FIS REST failed');
-            return;
-          }
-
-          // 2-2) FCM webpush registration
-          const fcm = await registerWebpushViaRest({
-            apiKey,
-            fisAuthToken: fis.authToken,
-            subscription: sub,
-          });
-
-          if (fcm?.token) {
-            console.log('[probe] fcmregistrations OK');
-            setFcmToken(fcm.token);
-          } else {
-            console.error(
-              '[probe] fcmregistrations FAILED',
-              fcm?.status,
-              fcm?.body,
-            );
-          }
         }
 
-        // 포그라운드 수신
+        // 2) REST 우회: FIS → FCM registrations
+        const fis = await createInstallationViaRest({
+          apiKey: API_KEY,
+          appId: APP_ID,
+          projectId: PROJECT_ID,
+        });
+        if (!fis?.authToken) {
+          console.error('[probe] FIS REST failed');
+          return;
+        }
+
+        const fcm = await registerWebpushViaRest({
+          apiKey: API_KEY,
+          fisAuthToken: fis.authToken,
+          subscription: sub,
+        });
+
+        if (fcm?.token) {
+          console.log('[probe] fcmregistrations OK');
+          setFcmToken(fcm.token);
+        } else {
+          console.error(
+            '[probe] fcmregistrations FAILED',
+            fcm?.status,
+            fcm?.body,
+          );
+        }
+
+        // 포그라운드 메시지
         unsubscribeOnMessage = onMessage(messaging, payload => {
-          console.log('[FCM] foreground message', payload);
+          console.log('[FCM] Foreground message:', payload);
         });
       } catch (err) {
         console.error('[FCM] fatal', err);
@@ -122,7 +143,7 @@ export const useFCM = () => {
   return fcmToken;
 };
 
-// Installations REST: https://firebaseinstallations.googleapis.com/v1/projects/{projectId}/installations
+// Installations REST
 async function createInstallationViaRest(opts: {
   apiKey: string;
   appId: string;
@@ -139,7 +160,6 @@ async function createInstallationViaRest(opts: {
     },
     body: JSON.stringify({
       appId,
-      // firebase JS SDK 식별자 (대략 맞춰주면 됨)
       sdkVersion: 'w:12.0.0',
     }),
   });
@@ -156,7 +176,6 @@ async function createInstallationViaRest(opts: {
       fid: json?.fid as string | undefined,
       refreshToken: json?.refreshToken as string | undefined,
       authToken: json?.authToken?.token as string | undefined,
-      // expiresIn: json?.authToken?.expiresIn
     };
   } catch {
     console.error('[probe] FIS parse error', text);
@@ -164,7 +183,7 @@ async function createInstallationViaRest(opts: {
   }
 }
 
-// FCM registrations REST: https://fcmregistrations.googleapis.com/v1/webpush/registrations?key=API_KEY
+// FCM registrations REST
 async function registerWebpushViaRest(opts: {
   apiKey: string;
   fisAuthToken: string;
@@ -180,21 +199,21 @@ async function registerWebpushViaRest(opts: {
     },
   };
 
-  const url = `https://fcmregistrations.googleapis.com/v1/webpush/registrations?key=${encodeURIComponent(apiKey)}`;
+  const url = `https://fcmregistrations.googleapis.com/v1/webpush/registrations?key=${encodeURIComponent(
+    apiKey,
+  )}`;
+
   const resp = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      // 중요: FIS auth 토큰을 Authorization 헤더로
       Authorization: `FIS ${fisAuthToken}`,
     },
     body: JSON.stringify(body),
   });
 
   const text = await resp.text();
-  if (!resp.ok) {
-    return { status: resp.status, body: text };
-  }
+  if (!resp.ok) return { status: resp.status, body: text };
 
   try {
     const json = JSON.parse(text);
@@ -204,7 +223,6 @@ async function registerWebpushViaRest(opts: {
   }
 }
 
-// ---- utils
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
