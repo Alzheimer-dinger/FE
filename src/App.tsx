@@ -33,6 +33,7 @@ const App = () => {
           <Route path="/signup-terms" element={<SignupTerms />} />
           <Route path="/signup-role" element={<SignupRole />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/debug" element={<DebugFCM />} />
 
           <Route element={<ProtectedRoute />}>
             {/* Call */}
@@ -48,8 +49,6 @@ const App = () => {
             <Route path="/mypage" element={<Mypage />} />
             <Route path="/mypage/edit" element={<ProfileEdit />} />
             <Route path="/manage" element={<PatientGuardianManage />} />
-
-            <Route path="/debug" element={<DebugFCM />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
