@@ -20,7 +20,6 @@ import {
   CallActive,
 } from '@pages/index';
 import { ProtectedRoute, ScrollToTop } from '@components/index';
-import DebugFCM from '@pages/DebugFCM';
 
 const App = () => {
   return (
@@ -33,7 +32,6 @@ const App = () => {
           <Route path="/signup-terms" element={<SignupTerms />} />
           <Route path="/signup-role" element={<SignupRole />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/debug" element={<DebugFCM />} />
 
           <Route element={<ProtectedRoute />}>
             {/* Call */}
