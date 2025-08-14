@@ -2,9 +2,10 @@ import styled from 'styled-components';
 
 type Props = {
   score: number;
+  centerEmoji?: string;
 };
 
-const EmotionScoreCircle = ({ score }: Props) => {
+const EmotionScoreCircle = ({ score, centerEmoji = '😊' }: Props) => {
   const radius = 50;
   const stroke = 10;
   const normalizedRadius = radius - stroke / 2;
@@ -14,7 +15,12 @@ const EmotionScoreCircle = ({ score }: Props) => {
 
   return (
     <CircleWrapper>
-      <svg height={radius * 2} width={radius * 2}>
+      <svg
+        height={radius * 2}
+        width={radius * 2}
+        role="img"
+        aria-label={`감정 점수 ${score}%`}
+      >
         <circle
           stroke="#e0d7ff"
           fill="transparent"
@@ -42,7 +48,7 @@ const EmotionScoreCircle = ({ score }: Props) => {
           fontSize="1.5rem"
           fill="#6c3cff"
         >
-          😊
+          {centerEmoji}
         </text>
       </svg>
       <ScoreText>{score}%</ScoreText>
