@@ -32,7 +32,7 @@ const FeedbackModal = ({
           {[
             { rating: 'VERY_LOW', emoji: '😡' },
             { rating: 'LOW', emoji: '😞' },
-            { rating: 'MIDDLE', emoji: '😐' },
+            { rating: 'MEDIUM', emoji: '😐' },
             { rating: 'HIGH', emoji: '🙂' },
             { rating: 'VERY_HIGH', emoji: '😄' },
           ].map(item => (

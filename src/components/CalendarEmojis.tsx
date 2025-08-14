@@ -1,63 +1,116 @@
 import styled from 'styled-components';
-import { useState } from 'react';
 
-const emojis = ['😊', '😐', '😢'];
-
-// Helper to get days in current month
-const getDaysInMonth = (year: number, month: number) => {
-  return new Date(year, month + 1, 0).getDate();
+type MonthlyEmotionDataItem = {
+  date: string; // YYYY-MM-DD
+  emotionType?: string; // HAPPY | SAD | ANGRY | SURPRISED | BORED
+  happyScore?: number;
+  sadScore?: number;
+  angryScore?: number;
+  surprisedScore?: number;
+  boredScore?: number;
 };
 
-const CalendarEmojis = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth(); // 0-indexed
+type Props = {
+  year: number;
+  month: number; // 0-indexed (0 = Jan)
+  data: MonthlyEmotionDataItem[];
+  selectedDate?: string; // YYYY-MM-DD
+  // eslint-disable-next-line no-unused-vars
+  onSelectDate?: (date: string) => void;
+};
+
+const emotionToEmoji = (type?: string): string => {
+  switch ((type || '').toUpperCase()) {
+    case 'HAPPY':
+      return '😊';
+    case 'SAD':
+      return '😢';
+    case 'ANGRY':
+      return '😠';
+    case 'SURPRISED':
+      return '😮';
+    case 'BORED':
+      return '😐';
+    default:
+      return '';
+  }
+};
+
+const computeDominantType = (
+  item: MonthlyEmotionDataItem,
+): string | undefined => {
+  // 점수 기반 우선순위 계산 (happy > sad > angry > surprised > bored)
+  if (
+    item.happyScore !== null ||
+    item.sadScore !== null ||
+    item.angryScore !== null ||
+    item.surprisedScore !== null ||
+    item.boredScore !== null
+  ) {
+    const arr = [
+      { t: 'HAPPY', s: item.happyScore ?? 0, p: 1 },
+      { t: 'SAD', s: item.sadScore ?? 0, p: 2 },
+      { t: 'ANGRY', s: item.angryScore ?? 0, p: 3 },
+      { t: 'SURPRISED', s: item.surprisedScore ?? 0, p: 4 },
+      { t: 'BORED', s: item.boredScore ?? 0, p: 5 },
+    ];
+    arr.sort((a, b) =>
+      Math.abs(a.s - b.s) < 0.000001 ? a.p - b.p : b.s - a.s,
+    );
+    return arr[0].s > 0 ? arr[0].t : undefined;
+  }
+  // 점수가 없다면 emotionType 사용
+  return item.emotionType;
+};
+
+// Helper to get days in given month
+const getDaysInMonth = (year: number, month: number) =>
+  new Date(year, month + 1, 0).getDate();
+
+const CalendarEmojis = ({
+  year,
+  month,
+  data,
+  selectedDate,
+  onSelectDate,
+}: Props) => {
   const daysInMonth = getDaysInMonth(year, month);
 
-  // Dummy data: rotate through emojis for each day
-  const days = Array.from({ length: daysInMonth }, (_, i) => ({
-    day: i + 1,
-    emoji: emojis[i % emojis.length],
-  }));
+  const byDate = new Map<string, MonthlyEmotionDataItem>();
+  data.forEach(d => byDate.set(d.date, d));
 
-  // Get the weekday of the 1st day of the month (0: Sunday, 6: Saturday)
+  const days = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    const mm = String(month + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const dateStr = `${year}-${mm}-${dd}`;
+    const it = byDate.get(dateStr) || { date: dateStr };
+    const dominantType = computeDominantType(it);
+    const emoji = emotionToEmoji(dominantType);
+    return { day, dateStr, emoji };
+  });
+
   const firstDayOfWeek = new Date(year, month, 1).getDay();
+  const cells: Array<{ day: number; dateStr: string; emoji: string } | null> =
+    [];
+  for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
+  cells.push(...days);
+  while (cells.length % 7 !== 0) cells.push(null);
 
-  // Fill calendar grid (start from firstDayOfWeek)
-  const calendarCells = [];
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    calendarCells.push(null); // empty cell
-  }
-  for (let i = 0; i < days.length; i++) {
-    calendarCells.push(days[i]);
-  }
-  // Fill the rest of the last week with nulls
-  while (calendarCells.length % 7 !== 0) {
-    calendarCells.push(null);
-  }
+  const weeks: (typeof cells)[] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
-  // Split into weeks
-  const weeks = [];
-  for (let i = 0; i < calendarCells.length; i += 7) {
-    weeks.push(calendarCells.slice(i, i + 7));
-  }
-
-  // State for selected day
-  const [selectedDay, setSelectedDay] = useState<number | null>(
-    today.getDate(),
-  );
-
-  const handleClick = (cell: any) => {
-    if (cell) {
-      setSelectedDay(cell.day);
-    }
+  const handleClick = (
+    cell: { day: number; dateStr: string; emoji: string } | null,
+  ) => {
+    if (cell && onSelectDate) onSelectDate(cell.dateStr);
   };
 
   return (
     <CalendarContainer>
       <WeekRow>
-        {['일', '월', '화', '수', '목', '금', '토'].map(day => (
-          <DayLabel key={day}>{day}</DayLabel>
+        {['일', '월', '화', '수', '목', '금', '토'].map(d => (
+          <DayLabel key={d}>{d}</DayLabel>
         ))}
       </WeekRow>
       {weeks.map((week, wIdx) => (
@@ -67,10 +120,10 @@ const CalendarEmojis = () => {
               <EmojiCell
                 key={dIdx}
                 onClick={() => handleClick(cell)}
-                $selected={selectedDay === cell.day}
+                $selected={selectedDate === cell.dateStr}
               >
                 <DayNumber>{cell.day}</DayNumber>
-                <div>{cell.emoji}</div>
+                {cell.emoji && <div>{cell.emoji}</div>}
               </EmojiCell>
             ) : (
               <EmojiCell key={dIdx} />
@@ -89,8 +142,8 @@ const CalendarContainer = styled.div`
   padding: 16px;
   background: #f8f6ff;
   border-radius: 16px;
-  width: 90%;
-  max-width: 350px;
+  width: 95%;
+  max-width: 420px;
 `;
 
 const WeekRow = styled.div`
