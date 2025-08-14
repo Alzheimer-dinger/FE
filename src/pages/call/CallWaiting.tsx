@@ -18,7 +18,6 @@ const CallWaiting = () => {
 
   const today = formatDate(now);
   const time = formatTime(now);
-  const name = '이름';
 
   const handleCall = () => {
     navigate('/call-active', { replace: true });
@@ -34,7 +33,7 @@ const CallWaiting = () => {
         <DateText>{today}</DateText>
         <TimeText>{time}</TimeText>
         <Message>
-          안녕하세요 {name}님! <br />
+          안녕하세요! 오늘도 좋은하루 보내셨나요? <br />
           통화 연결하기 버튼을 눌러 <br />
           오늘의 통화를 시작해주세요!
         </Message>
@@ -79,7 +78,7 @@ const Message = styled.p`
   text-align: center;
   font-size: 0.9rem;
   color: #38006b;
-  line-height: 1.2;
+  line-height: 1.4;
   margin-bottom: 3rem;
 `;
 
