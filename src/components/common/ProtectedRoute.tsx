@@ -7,10 +7,9 @@
  * - 토큰이 있으면 해당 페이지(<Outlet />) 렌더링
  */
 
-import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
-const ProtectedRoute: React.FC = () => {
+const ProtectedRoute = () => {
   const accessToken = localStorage.getItem('accessToken');
 
   if (!accessToken) {
