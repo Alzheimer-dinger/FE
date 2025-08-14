@@ -18,6 +18,8 @@ import {
   CallBtn,
 } from '@components/index';
 import { groupByMonth } from '@utils/calldate';
+import Loading from '@pages/Loading';
+import { requestGetFetch } from '@services/apiService';
 
 interface TranscriptResponse {
   sessionId: string;
@@ -45,22 +47,7 @@ const Call = () => {
         setLoading(true);
         setError(null);
 
-        const token = localStorage.getItem('accessToken') ?? '';
-
-        const res = await fetch(
-          `${import.meta.env.VITE_SERVER_URL}/api/transcripts`,
-          {
-            headers: {
-              Accept: 'application/json',
-              Authorization: token ? `Bearer ${token}` : '',
-            },
-          },
-        );
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const json = await res.json();
-
+        const json = await requestGetFetch('/api/transcripts');
         const list: TranscriptResponse[] = Array.isArray(json?.result)
           ? json.result
           : [];
@@ -76,19 +63,19 @@ const Call = () => {
     fetchTranscripts();
   }, []);
 
+  if (loading) return <Loading />;
+
   return (
     <Container>
       <DefaultHeader showIcon={false} />
       <ContentContainer navMargin={true}>
-        {loading && <StatusText>불러오는 중...</StatusText>}
-        {error && !loading && <StatusText>오류: {error}</StatusText>}
+        {error && <StatusText>오류: {error}</StatusText>}
 
-        {!loading && !error && items.length === 0 && (
+        {!error && items.length === 0 && (
           <StatusText>통화 기록이 없습니다</StatusText>
         )}
 
-        {!loading &&
-          !error &&
+        {!error &&
           grouped.map(([month, records]) => (
             <RecordList key={month}>
               <MonthTitle>{month}</MonthTitle>
