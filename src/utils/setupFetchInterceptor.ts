@@ -48,16 +48,23 @@ if (!(globalThis as any).__FETCH_INTERCEPTOR_INSTALLED__) {
     // 입력 정규화
     const req = input instanceof Request ? input : new Request(input, init);
 
-    // 인증/토큰 엔드포인트는 건너뛰기(무한루프 방지)
+    // 인증/토큰 엔드포인트 및 외부 스토리지는 건너뛰기(무한루프 방지, CORS 방지)
     const url = new URL(req.url, window.location.origin);
     const isAuthEndpoint =
       url.pathname.startsWith('/api/users/login') ||
       url.pathname.startsWith('/api/users/signup') ||
       url.pathname.startsWith('/api/token');
+    
+    // Google Cloud Storage, AWS S3 등 외부 스토리지 URL은 제외
+    const isExternalStorage = 
+      url.hostname.includes('googleapis.com') ||
+      url.hostname.includes('amazon') ||
+      url.hostname.includes('s3') ||
+      url.hostname !== window.location.hostname;
 
     // Authorization 자동 부착 (이미 있으면 유지)
     let headers = new Headers(req.headers);
-    if (!headers.has('Authorization') && !isAuthEndpoint) {
+    if (!headers.has('Authorization') && !isAuthEndpoint && !isExternalStorage) {
       const access = getAccess();
       if (access) headers.set('Authorization', `Bearer ${access}`);
     }
@@ -66,7 +73,7 @@ if (!(globalThis as any).__FETCH_INTERCEPTOR_INSTALLED__) {
     const firstCall = await originalFetch(new Request(req, { headers }));
 
     // 정상/기타 에러 → 그대로 반환
-    if (firstCall.status !== 401 || isAuthEndpoint) return firstCall;
+    if (firstCall.status !== 401 || isAuthEndpoint || isExternalStorage) return firstCall;
 
     // 401 → 재발급 시도
     const refreshed = await refreshAccessToken();

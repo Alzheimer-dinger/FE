@@ -132,7 +132,6 @@ const DailySection = () => {
 
 export default DailySection;
 
-// Styled Components
 const DailyContent = styled.div`
   display: flex;
   flex-direction: column;

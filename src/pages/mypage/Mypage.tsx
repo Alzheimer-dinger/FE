@@ -21,6 +21,7 @@ import {
   getRelations,
   getUserProfile,
 } from '@services/api';
+import Loading from '@pages/Loading';
 
 const Mypage = () => {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ const Mypage = () => {
   const [feedbackReason, setFeedbackReason] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // 프로필 정보 상태
   const [profileInfo, setProfileInfo] = useState({
@@ -55,6 +57,8 @@ const Mypage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+
         // 프로필 정보 조회
         const profile = await getUserProfile();
         setProfileInfo({
@@ -95,11 +99,16 @@ const Mypage = () => {
         console.error('데이터 조회 실패:', error);
         alert('서버 연결에 실패했습니다');
       } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const handleProfileEditClick = () => {
     navigate('/mypage/edit');

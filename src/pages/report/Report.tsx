@@ -11,6 +11,7 @@ import DailySection from './DailySection';
 import TotalSection from './TotalSection';
 import { IoSettingsSharp } from 'react-icons/io5';
 import { getUserProfile, getRelations, type Relation } from '@services/api';
+import Loading from '@pages/Loading';
 
 const Report = () => {
   const [activeTab, setActiveTab] = useState('일간');
@@ -21,6 +22,7 @@ const Report = () => {
   const [relations, setRelations] = useState<Relation[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -31,7 +33,10 @@ const Report = () => {
       try {
         const list = await getRelations();
         setRelations(list);
-      } catch {}
+      } catch {
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, []);
@@ -63,6 +68,10 @@ const Report = () => {
     };
     ensureQuery();
   }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const tabs = ['일간', '종합'];
 
@@ -166,12 +175,13 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalCard = styled.div`
-  width: 90%;
+  width: 80%;
   max-width: 360px;
   background: #fff;
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
 `;
 
 const ModalTitle = styled.h3`
