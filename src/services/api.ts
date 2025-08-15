@@ -46,15 +46,13 @@ apiClient.interceptors.response.use(
 // 로그아웃 API
 export const logoutUser = async (): Promise<void> => {
   try {
-    await apiClient.post('/api/users/logout');
+    await apiClient.delete('/api/users/logout');
   } catch (error) {
     console.error('로그아웃 API 호출 실패:', error);
-    // API 호출이 실패해도 로컬에서 로그아웃 처리
   } finally {
-    // 로컬 스토리지 정리
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
-    // 기타 필요한 데이터 정리
+    localStorage.removeItem('refreshToken');
   }
 };
 
