@@ -53,13 +53,13 @@ const DailySection = () => {
   const monthlyData = analysis?.monthlyEmotionData ?? [];
 
   const dominant = useMemo(() => {
-    if (!analysis) return { type: 'NONE', percent: 0 };
+    if (!analysis) return { type: 'none', percent: 0 };
     const arr = [
-      { type: 'HAPPY', score: analysis.happyScore, pr: 1 },
-      { type: 'SAD', score: analysis.sadScore, pr: 2 },
-      { type: 'ANGRY', score: analysis.angryScore, pr: 3 },
-      { type: 'SURPRISED', score: analysis.surprisedScore, pr: 4 },
-      { type: 'BORED', score: analysis.boredScore, pr: 5 },
+      { type: 'happy', score: analysis.happyScore, pr: 1 },
+      { type: 'sad', score: analysis.sadScore, pr: 2 },
+      { type: 'angry', score: analysis.angryScore, pr: 3 },
+      { type: 'surprised', score: analysis.surprisedScore, pr: 4 },
+      { type: 'bored', score: analysis.boredScore, pr: 5 },
     ];
     arr.sort((a, b) =>
       Math.abs(a.score - b.score) < 0.001 ? a.pr - b.pr : b.score - a.score,
@@ -69,12 +69,12 @@ const DailySection = () => {
 
   const labelText = useMemo(() => {
     const emotionLabels: Record<string, string> = {
-      HAPPY: '행복',
-      SAD: '슬픔',
-      ANGRY: '화남',
-      SURPRISED: '놀람',
-      BORED: '지루함',
-      NONE: '알 수 없음',
+      happy: '행복',
+      sad: '슬픔',
+      angry: '화남',
+      surprised: '놀람',
+      bored: '지루함',
+      none: '알 수 없음',
     };
     const d = new Date(selectedDate);
     const m = d.getMonth() + 1;
@@ -85,15 +85,15 @@ const DailySection = () => {
 
   const centerEmoji = useMemo(() => {
     switch (dominant.type) {
-      case 'HAPPY':
+      case 'happy':
         return '😊';
-      case 'SAD':
+      case 'sad':
         return '😢';
-      case 'ANGRY':
+      case 'angry':
         return '😠';
-      case 'SURPRISED':
+      case 'surprised':
         return '😮';
-      case 'BORED':
+      case 'bored':
         return '😐';
       default:
         return '📊';
