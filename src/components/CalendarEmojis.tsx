@@ -145,7 +145,7 @@ const CalendarContainer = styled.div`
   padding: 16px;
   background: #f8f6ff;
   border-radius: 16px;
-  width: 95%;
+  width: 100%;
   max-width: 420px;
 `;
 
