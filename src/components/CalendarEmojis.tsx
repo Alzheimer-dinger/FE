@@ -39,14 +39,16 @@ const emotionToEmoji = (type?: string): string => {
 const computeDominantType = (
   item: MonthlyEmotionDataItem,
 ): string | undefined => {
-  // 점수 기반 우선순위 계산 (happy > sad > angry > surprised > bored)
-  if (
-    item.happyScore !== null ||
-    item.sadScore !== null ||
-    item.angryScore !== null ||
-    item.surprisedScore !== null ||
-    item.boredScore !== null
-  ) {
+  // 점수가 실제로 존재하는지 확인 (undefined가 아니고 null도 아닌 경우)
+  const hasScores = 
+    (item.happyScore !== undefined && item.happyScore !== null) ||
+    (item.sadScore !== undefined && item.sadScore !== null) ||
+    (item.angryScore !== undefined && item.angryScore !== null) ||
+    (item.surprisedScore !== undefined && item.surprisedScore !== null) ||
+    (item.boredScore !== undefined && item.boredScore !== null);
+  
+  if (hasScores) {
+    // 점수 기반 우선순위 계산 (happy > sad > angry > surprised > bored)
     const arr = [
       { t: 'HAPPY', s: item.happyScore ?? 0, p: 1 },
       { t: 'SAD', s: item.sadScore ?? 0, p: 2 },
@@ -59,6 +61,7 @@ const computeDominantType = (
     );
     return arr[0].s > 0 ? arr[0].t : undefined;
   }
+  
   // 점수가 없다면 emotionType 사용
   return item.emotionType;
 };
@@ -142,7 +145,7 @@ const CalendarContainer = styled.div`
   padding: 16px;
   background: #f8f6ff;
   border-radius: 16px;
-  width: 95%;
+  width: 100%;
   max-width: 420px;
 `;
 

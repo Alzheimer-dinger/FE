@@ -4,7 +4,9 @@ import { useLocation } from 'react-router-dom';
 import { CalendarEmojis, EmotionScoreCircle } from '@components/index';
 import {
   getDayAnalysis,
+  getMonthlyEmotionData,
   type DayAnalysis,
+  type MonthlyEmotionDataItem,
   getUserProfile,
 } from '@services/api';
 
@@ -23,6 +25,7 @@ const DailySection = () => {
   const [month, setMonth] = useState(today.getMonth()); // 0-indexed
   const [selectedDate, setSelectedDate] = useState(formatDateYYYYMMDD(today));
   const [analysis, setAnalysis] = useState<DayAnalysis | null>(null);
+  const [monthlyData, setMonthlyData] = useState<MonthlyEmotionDataItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,14 +38,22 @@ const DailySection = () => {
         const overrideUserId = query.get('userId');
         const me = await getUserProfile();
         const targetUserId = overrideUserId || me.patientCode || me.userId;
-        const data = await getDayAnalysis(selectedDate, targetUserId);
-        setAnalysis(data);
+        
+        // 일간 분석 데이터 가져오기
+        const dayData = await getDayAnalysis(selectedDate, targetUserId);
+        setAnalysis(dayData);
+        
+        // 월간 감정 데이터 가져오기 (캘린더용)
+        const monthData = await getMonthlyEmotionData(selectedDate, targetUserId);
+        setMonthlyData(monthData?.monthlyEmotionData || []);
+        
         const d = new Date(selectedDate);
         setYear(d.getFullYear());
         setMonth(d.getMonth());
       } catch {
         setError('서버 연결에 실패했습니다');
         setAnalysis(null);
+        setMonthlyData([]);
       } finally {
         setLoading(false);
       }
@@ -50,16 +61,14 @@ const DailySection = () => {
     fetchData();
   }, [selectedDate, location.search]);
 
-  const monthlyData = analysis?.monthlyEmotionData ?? [];
-
   const dominant = useMemo(() => {
-    if (!analysis) return { type: 'NONE', percent: 0 };
+    if (!analysis || !analysis.hasData) return { type: 'none', percent: 0 };
     const arr = [
-      { type: 'HAPPY', score: analysis.happyScore, pr: 1 },
-      { type: 'SAD', score: analysis.sadScore, pr: 2 },
-      { type: 'ANGRY', score: analysis.angryScore, pr: 3 },
-      { type: 'SURPRISED', score: analysis.surprisedScore, pr: 4 },
-      { type: 'BORED', score: analysis.boredScore, pr: 5 },
+      { type: 'happy', score: analysis.happyScore, pr: 1 },
+      { type: 'sad', score: analysis.sadScore, pr: 2 },
+      { type: 'angry', score: analysis.angryScore, pr: 3 },
+      { type: 'surprised', score: analysis.surprisedScore, pr: 4 },
+      { type: 'bored', score: analysis.boredScore, pr: 5 },
     ];
     arr.sort((a, b) =>
       Math.abs(a.score - b.score) < 0.001 ? a.pr - b.pr : b.score - a.score,
@@ -69,12 +78,12 @@ const DailySection = () => {
 
   const labelText = useMemo(() => {
     const emotionLabels: Record<string, string> = {
-      HAPPY: '행복',
-      SAD: '슬픔',
-      ANGRY: '화남',
-      SURPRISED: '놀람',
-      BORED: '지루함',
-      NONE: '알 수 없음',
+      happy: '행복',
+      sad: '슬픔',
+      angry: '화남',
+      surprised: '놀람',
+      bored: '지루함',
+      none: '알 수 없음',
     };
     const d = new Date(selectedDate);
     const m = d.getMonth() + 1;
@@ -85,15 +94,15 @@ const DailySection = () => {
 
   const centerEmoji = useMemo(() => {
     switch (dominant.type) {
-      case 'HAPPY':
+      case 'happy':
         return '😊';
-      case 'SAD':
+      case 'sad':
         return '😢';
-      case 'ANGRY':
+      case 'angry':
         return '😠';
-      case 'SURPRISED':
+      case 'surprised':
         return '😮';
-      case 'BORED':
+      case 'bored':
         return '😐';
       default:
         return '📊';
@@ -114,7 +123,7 @@ const DailySection = () => {
           <LoadingText>불러오는 중...</LoadingText>
         ) : error ? (
           <ErrorText>{error}</ErrorText>
-        ) : analysis ? (
+        ) : analysis && analysis.hasData ? (
           <>
             <EmotionScoreCircle
               score={dominant.percent}
@@ -123,7 +132,7 @@ const DailySection = () => {
             <ScoreDesc>{labelText}</ScoreDesc>
           </>
         ) : (
-          <EmptyText>데이터가 없습니다.</EmptyText>
+          <EmptyText>해당 날짜의 감정 분석 데이터가 없습니다.</EmptyText>
         )}
       </Section>
     </DailyContent>
@@ -136,6 +145,9 @@ const DailyContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
 `;
 
 const Section = styled.div`
@@ -144,6 +156,7 @@ const Section = styled.div`
   align-items: center;
   gap: 1rem;
   min-height: 200px;
+  width: 100%;
 `;
 
 const ScoreDesc = styled.p`

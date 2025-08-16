@@ -143,11 +143,18 @@ export interface MonthlyEmotionDataItem {
 export interface DayAnalysis {
   userId: string;
   analysisDate: string; // YYYY-MM-DD
+  hasData: boolean;
   happyScore: number;
   sadScore: number;
   angryScore: number;
   surprisedScore: number;
   boredScore: number;
+}
+
+// 월간 감정 데이터 응답 타입
+export interface MonthlyEmotionResponse {
+  userId: string;
+  month: string; // YYYY-MM-DD
   monthlyEmotionData: MonthlyEmotionDataItem[];
 }
 
@@ -164,10 +171,61 @@ export const getDayAnalysis = async (
       ? (payload.result as DayAnalysis)
       : (payload as DayAnalysis);
   } catch (error: any) {
-    if (error?.response?.status === 404) {
-      return null; // 데이터 없음
+    if (error?.response?.status === 400) {
+      return null; // 잘못된 날짜 형식
     }
     throw error; // 그 외 에러는 상위에서 처리
+  }
+};
+
+// 월간 감정 데이터 조회 API
+export const getMonthlyEmotionData = async (
+  month: string,
+  userId: string,
+): Promise<MonthlyEmotionResponse | null> => {
+  console.log('📅 [월간 감정] API 호출 시작', {
+    url: '/api/analysis/emotion/monthly',
+    method: 'GET',
+    params: { month, userId },
+    baseURL: apiClient.defaults.baseURL,
+  });
+  
+  try {
+    const response = await apiClient.get('/api/analysis/emotion/monthly', {
+      params: { month, userId },
+    });
+    
+    console.log('📅 [월간 감정] API 응답 성공', {
+      status: response.status,
+      statusText: response.statusText,
+      dataKeys: Object.keys(response.data || {}),
+      responseData: response.data,
+    });
+    
+    const payload = response.data as any;
+    const result = payload && payload.result
+      ? (payload.result as MonthlyEmotionResponse)
+      : (payload as MonthlyEmotionResponse);
+      
+    console.log('📅 [월간 감정] 최종 파싱 결과', result);
+    return result;
+  } catch (error: any) {
+    console.error('❌ [월간 감정] API 오류', {
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      responseData: error?.response?.data,
+      message: error?.message,
+      config: {
+        url: error?.config?.url,
+        method: error?.config?.method,
+        params: error?.config?.params,
+      },
+    });
+    
+    if (error?.response?.status === 400) {
+      return null; // 잘못된 날짜 형식
+    }
+    throw error;
   }
 };
 
@@ -298,20 +356,46 @@ export interface ApiEnvelope<T> {
 export const sendRelationRequest = async (
   patientCode: string,
 ): Promise<ApiEnvelope<string>> => {
-  console.log('[Relation][SEND][REQUEST][service] /api/relations/send', {
-    patientCode,
+  console.log('🔗 [관계 추가] API 호출 시작', {
+    url: '/api/relations/send',
+    method: 'POST',
+    body: { patientCode },
+    baseURL: apiClient.defaults.baseURL,
+    timestamp: new Date().toISOString()
   });
-  const response = await apiClient.post('/api/relations/send', { patientCode });
-  const raw = response.data as any;
-  const envelope: ApiEnvelope<string> =
-    raw && typeof raw === 'object' && ('result' in raw || 'message' in raw)
-      ? (raw as ApiEnvelope<string>)
-      : { result: raw };
-  console.log(
-    '[Relation][SEND][RESPONSE][service] /api/relations/send',
-    envelope,
-  );
-  return envelope;
+  
+  try {
+    const response = await apiClient.post('/api/relations/send', { patientCode });
+    
+    console.log('🔗 [관계 추가] API 응답 성공', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      responseData: response.data
+    });
+    
+    const raw = response.data as any;
+    const envelope: ApiEnvelope<string> =
+      raw && typeof raw === 'object' && ('result' in raw || 'message' in raw)
+        ? (raw as ApiEnvelope<string>)
+        : { result: raw };
+        
+    console.log('🔗 [관계 추가] 최종 파싱 결과', envelope);
+    return envelope;
+  } catch (error: any) {
+    console.error('❌ [관계 추가] API 오류', {
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      responseData: error?.response?.data,
+      message: error?.message,
+      config: {
+        url: error?.config?.url,
+        method: error?.config?.method,
+        data: error?.config?.data,
+      },
+    });
+    throw error;
+  }
 };
 
 // 관계 요청 응답 API (승인/거절)
