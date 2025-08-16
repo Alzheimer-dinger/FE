@@ -104,12 +104,8 @@ const TotalSection = () => {
 
   const participationDisplay = useMemo(() => {
     if (totalParticipate === null) return '--회';
-    let totalDays = daysDiffInclusive(startDate, endDate);
-    if (selectedPeriod === '최근 1주일') totalDays = 7;
-    if (selectedPeriod === '최근 1달') totalDays = 30;
-    if (totalDays <= 0) return '--회';
-    return `${totalParticipate}/${totalDays}회`;
-  }, [totalParticipate, startDate, endDate, selectedPeriod]);
+    return `${totalParticipate}회`;
+  }, [totalParticipate]);
 
   const riskScore = useMemo(() => {
     if (totalParticipate === null || totalParticipate <= 0) return null;
@@ -173,6 +169,27 @@ const TotalSection = () => {
         setAverageCallTime(null);
         return;
       }
+      console.log('📊 [감정변화 그래프] timeline 데이터 설정:', {
+        emotionTimeline: res.emotionTimeline,
+        timelineLength: res.emotionTimeline?.length || 0,
+        sampleData: res.emotionTimeline?.slice(0, 3) // 첫 3개 항목만 샘플로
+      });
+      
+      // 각 timeline 항목의 구조 상세 확인
+      if (res.emotionTimeline && res.emotionTimeline.length > 0) {
+        console.log('📊 [감정변화 그래프] PeriodTimelineItem 구조 분석:');
+        res.emotionTimeline.forEach((item, index) => {
+          console.log(`  [${index}] 날짜: ${item.date}`);
+          console.log(`      happyScore: ${item.happyScore}`);
+          console.log(`      sadScore: ${item.sadScore}`);
+          console.log(`      angryScore: ${item.angryScore}`);
+          console.log(`      surprisedScore: ${item.surprisedScore}`);
+          console.log(`      boredScore: ${item.boredScore}`);
+          console.log(`      riskScore: ${item.riskScore}`);
+          console.log(`      전체 객체:`, item);
+        });
+      }
+      
       setTimeline(res.emotionTimeline || []);
       setTotalParticipate(res.totalParticipate ?? null);
       setAverageCallTime(res.averageCallTime ?? null);
@@ -191,6 +208,14 @@ const TotalSection = () => {
     try {
       setReportLoading(true);
       const report = await getLatestReport(periodEnd, userId);
+      
+      console.log('📋 [보고서] LatestReport Entity 구조:');
+      console.log('  reportId:', report?.reportId);
+      console.log('  userId:', report?.userId);
+      console.log('  createdAt:', report?.createdAt);
+      console.log('  report:', report?.report);
+      console.log('📋 [보고서] 전체 객체:', report);
+      
       setLatestReport(report);
     } catch (err: any) {
       console.error('종합보고서 로딩 실패:', err);
@@ -255,6 +280,43 @@ const TotalSection = () => {
     loadPatientInfo();
     loadReport();
   }, [overrideUserId, endDate, userName]);
+
+  // 초기 날짜 설정을 위한 useEffect
+  useEffect(() => {
+    console.log('📅 [TotalSection] 초기 날짜 설정 useEffect');
+    
+    // 초기 마운트 시에만 날짜 설정
+    if (!startDate && !endDate) {
+      const today = new Date();
+      const oneWeekAgo = addDays(today, -6);
+      
+      const start = formatYMD(oneWeekAgo);
+      const end = formatYMD(today);
+      
+      console.log('📅 [TotalSection] 초기 날짜 설정:', { start, end });
+      setStartDate(start);
+      setEndDate(end);
+    }
+  }, []); // 빈 dependency로 마운트 시에만 실행
+
+  // 초기 기간 데이터 로딩을 위한 별도 useEffect
+  useEffect(() => {
+    console.log('📊 [TotalSection] 초기 기간 데이터 로딩 useEffect', {
+      selectedPeriod,
+      startDate,
+      endDate,
+      hasStartDate: !!startDate,
+      hasEndDate: !!endDate
+    });
+
+    // 컴포넌트 마운트 후 기본값("최근 1주일")으로 데이터 로딩
+    if (selectedPeriod === '최근 1주일' && startDate && endDate) {
+      console.log('🚀 [TotalSection] 초기 기간 데이터 로딩 시작:', { startDate, endDate });
+      fetchPeriod(startDate, endDate);
+    } else {
+      console.log('⚠️ [TotalSection] 초기 기간 데이터 로딩 조건 불충족');
+    }
+  }, [selectedPeriod, startDate, endDate]);
 
   const handleConfirm = () => {
     setShowCustom(false);
@@ -351,24 +413,28 @@ const TotalSection = () => {
 
         {loading && <LoadingText>불러오는 중...</LoadingText>}
         {!loading && error && <ErrorText>{error}</ErrorText>}
-        {!loading && !error && <BudgetLine data={timeline} />}
+        {!loading && !error && (
+          <>
+            {console.log('📊 [감정변화 그래프] BudgetLine에 전달되는 데이터:', {
+              timelineData: timeline,
+              dataLength: timeline.length,
+              firstItem: timeline[0],
+              lastItem: timeline[timeline.length - 1]
+            })}
+            <BudgetLine data={timeline} />
+          </>
+        )}
         <StatsRow>
           <StatCard>
-            <StatLabel>통화 참여도</StatLabel>
+            <StatLabel>통화 참여 횟수</StatLabel>
             <StatValue>{participationDisplay}</StatValue>
           </StatCard>
           <StatCard>
             <StatLabel>평균 통화 시간</StatLabel>
             <StatValue>{averageCallTime ?? '--'}</StatValue>
           </StatCard>
-          {riskScore !== null && (
-            <StatCard>
-              <StatLabel>위험도 점수</StatLabel>
-              <StatValue>{(riskScore * 100).toFixed(1)}%</StatValue>
-            </StatCard>
-          )}
         </StatsRow>
-        {riskScore !== null && riskScore >= 0.3 && (
+        {riskScore !== null && riskScore >= 0.4 && (
           <WarningBox>
             <b>⚠️ 경고</b>
             <br />
@@ -383,8 +449,7 @@ const TotalSection = () => {
       ) : latestReport ? (
         <ResultBox>
           <ReportHeader>
-            <ReportDate>{latestReport.createdAt} 생성</ReportDate>
-            <ReportId>#{latestReport.reportId}</ReportId>
+            <ReportDate>{latestReport.createdAt}</ReportDate>
           </ReportHeader>
           <ReportContent>{latestReport.report}</ReportContent>
         </ResultBox>
@@ -401,6 +466,9 @@ const TotalContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 `;
 
 const SectionTitle = styled.h2`
@@ -414,6 +482,7 @@ const GraphSection = styled.div`
   border: 1px solid #d7d7d7;
   border-radius: 12px;
   padding: 1rem;
+  width: 100%;
 `;
 
 const GraphHeader = styled.div`
@@ -484,6 +553,7 @@ const ResultBox = styled.div`
   font-size: 0.9rem;
   color: #666;
   line-height: 1.5;
+  width: 100%;
 `;
 
 const CustomRangePanel = styled.div`
@@ -574,15 +644,11 @@ const ReportHeader = styled.div`
 `;
 
 const ReportDate = styled.span`
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #666;
 `;
 
-const ReportId = styled.span`
-  font-size: 0.8rem;
-  color: #6c3cff;
-  font-weight: 600;
-`;
+
 
 const ReportContent = styled.div`
   font-size: 0.9rem;

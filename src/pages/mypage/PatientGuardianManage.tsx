@@ -188,6 +188,14 @@ const PatientGuardianManage = () => {
 
   // 환자 추가 (관계 요청 전송)
   const handleAddPatient = async (patientCode: string) => {
+    console.log('🚀 [관계 추가] UI에서 호출', {
+      입력된_patientCode: patientCode,
+      데이터_타입: typeof patientCode,
+      길이: patientCode?.length,
+      비어있는지: !patientCode?.trim(),
+      timestamp: new Date().toISOString()
+    });
+    
     try {
       console.log('[Relation][SEND][REQUEST] /api/relations/send', {
         patientCode,
