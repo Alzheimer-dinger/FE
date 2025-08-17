@@ -59,14 +59,29 @@ export const toDotDate = (isoDate: string): string => {
 };
 
 /**
- * 초 단위를 "00분 00초" 형식으로 변환
+ * 통화 시간에서 초 단위를 제거하여 "HH:MM:SS" 형식으로 변환
+ * "16:40:32.021" → "16:40:32"
  *
  * 사용화면 - RecordCard.tsx, RecordDetail.tsx
  */
+export const formatTime = (timeString: string) => {
+  return timeString.split('.')[0];
+};
+
+/**
+ * 초 단위를 "00분 00초" 형식으로 변환
+ *
+ * 사용화면 - RecordCard.tsx
+ */
 export const formatDuration = (secLike?: string) => {
   const totalSec = Number(secLike ?? 0);
-  if (!Number.isFinite(totalSec) || totalSec <= 0) return '00분 00초';
-  const minutes = String(Math.floor(totalSec / 60)).padStart(2, '0');
-  const seconds = String(totalSec % 60).padStart(2, '0');
+  if (!Number.isFinite(totalSec) || totalSec <= 0) return '0초';
+
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = totalSec % 60;
+
+  if (minutes === 0) {
+    return `${seconds}초`;
+  }
   return `${minutes}분 ${seconds}초`;
 };
