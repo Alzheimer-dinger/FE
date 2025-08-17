@@ -32,7 +32,6 @@ const TabMenu = ({ tabs, activeTab, onTabChange }: TabMenuProps) => {
 
 export default TabMenu;
 
-// Styled Components
 const TabContainer = styled.div`
   display: flex;
   background: #f5f5f5;

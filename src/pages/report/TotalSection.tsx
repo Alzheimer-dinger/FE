@@ -174,9 +174,9 @@ const TotalSection = () => {
       console.log('📊 [감정변화 그래프] timeline 데이터 설정:', {
         emotionTimeline: res.emotionTimeline,
         timelineLength: res.emotionTimeline?.length || 0,
-        sampleData: res.emotionTimeline?.slice(0, 3) // 첫 3개 항목만 샘플로
+        sampleData: res.emotionTimeline?.slice(0, 3), // 첫 3개 항목만 샘플로
       });
-      
+
       // 각 timeline 항목의 구조 상세 확인
       if (res.emotionTimeline && res.emotionTimeline.length > 0) {
         console.log('📊 [감정변화 그래프] PeriodTimelineItem 구조 분석:');
@@ -191,7 +191,7 @@ const TotalSection = () => {
           console.log(`      전체 객체:`, item);
         });
       }
-      
+
       setTimeline(res.emotionTimeline || []);
       setTotalParticipate(res.totalParticipate ?? null);
       setAverageCallTime(res.averageCallTime ?? null);
@@ -210,14 +210,14 @@ const TotalSection = () => {
     try {
       setReportLoading(true);
       const report = await getLatestReport(periodEnd, userId);
-      
+
       console.log('📋 [보고서] LatestReport Entity 구조:');
       console.log('  reportId:', report?.reportId);
       console.log('  userId:', report?.userId);
       console.log('  createdAt:', report?.createdAt);
       console.log('  report:', report?.report);
       console.log('📋 [보고서] 전체 객체:', report);
-      
+
       // 404나 null인 경우에도 빈 상태로 처리
       if (!report) {
         console.log('📋 [보고서] 보고서 없음 - 빈 상태 메시지 표시');
@@ -290,22 +290,22 @@ const TotalSection = () => {
   // 초기 날짜 설정을 위한 useEffect
   useEffect(() => {
     console.log('📅 [TotalSection] 초기 날짜 설정 useEffect');
-    
+
     // 초기 마운트 시에만 날짜 설정
     if (!startDate && !endDate) {
       const today = new Date();
       const oneWeekAgo = addDays(today, -6);
-      
+
       const start = formatYMD(oneWeekAgo);
       const end = formatYMD(today);
-      
+
       console.log('📅 [TotalSection] 초기 날짜 설정:', { start, end });
       setStartDate(start);
       setEndDate(end);
     }
   }, []); // 빈 dependency로 마운트 시에만 실행
 
-    // 기간 데이터 로딩 및 userId 변경 시 갱신을 위한 useEffect
+  // 기간 데이터 로딩 및 userId 변경 시 갱신을 위한 useEffect
   useEffect(() => {
     console.log('📊 [TotalSection] 기간 데이터 로딩 useEffect', {
       selectedPeriod,
@@ -313,12 +313,16 @@ const TotalSection = () => {
       endDate,
       overrideUserId,
       hasStartDate: !!startDate,
-      hasEndDate: !!endDate
+      hasEndDate: !!endDate,
     });
 
     // 기본값("최근 1주일")이거나 날짜가 설정되어 있으면 데이터 로딩
     if (startDate && endDate) {
-      console.log('🚀 [TotalSection] 기간 데이터 로딩 시작:', { startDate, endDate, userId: overrideUserId });
+      console.log('🚀 [TotalSection] 기간 데이터 로딩 시작:', {
+        startDate,
+        endDate,
+        userId: overrideUserId,
+      });
       fetchPeriod(startDate, endDate);
     } else {
       console.log('⚠️ [TotalSection] 기간 데이터 로딩 조건 불충족');
@@ -426,7 +430,7 @@ const TotalSection = () => {
               timelineData: timeline,
               dataLength: timeline.length,
               firstItem: timeline[0],
-              lastItem: timeline[timeline.length - 1]
+              lastItem: timeline[timeline.length - 1],
             })}
             <BudgetLine data={timeline} />
           </>
@@ -656,8 +660,6 @@ const ReportDate = styled.span`
   font-size: 1rem;
   color: #666;
 `;
-
-
 
 const ReportContent = styled.div`
   font-size: 0.9rem;

@@ -13,7 +13,7 @@
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiChevronRight } from 'react-icons/fi';
-import { formatDuration, toDotDate } from '@utils/calldate';
+import { formatDuration, formatTime, toDotDate } from '@utils/calldate';
 
 interface RecordCardProps {
   sessionId: string;
@@ -39,7 +39,7 @@ const RecordCard = ({
   };
 
   const formattedDate = toDotDate(date);
-  const timeRange = `${startTime} ~ ${endTime} (${formatDuration(durationSeconds)})`;
+  const timeRange = `${formatTime(startTime)} ~ ${formatTime(endTime)} (${formatDuration(durationSeconds)})`;
 
   return (
     <Card>

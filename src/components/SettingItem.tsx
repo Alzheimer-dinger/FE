@@ -30,7 +30,6 @@ const SettingItem = ({
 
 export default SettingItem;
 
-// Styled Components
 const ItemContainer = styled.div`
   display: flex;
   align-items: center;
