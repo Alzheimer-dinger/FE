@@ -311,6 +311,7 @@ export interface Relation {
   createdAt: string;
   status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'DISCONNECTED';
   isInitiator: boolean;
+  imageUrl?: string;
 }
 
 // 관계 요청 응답을 위한 타입 (relationId 포함)
