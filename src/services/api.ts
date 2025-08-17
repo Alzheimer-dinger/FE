@@ -305,10 +305,11 @@ export interface Relation {
   relationId: string;
   name: string;
   patientCode: string;
+  userId: string;
   relationType: 'GUARDIAN' | 'PATIENT';
   createdAt: string;
   status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'DISCONNECTED';
-  initiator: 'GUARDIAN' | 'PATIENT';
+  isInitiator: boolean; 
 }
 
 // 관계 요청 응답을 위한 타입 (relationId 포함)

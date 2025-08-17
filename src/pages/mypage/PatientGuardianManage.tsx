@@ -256,10 +256,8 @@ const PatientGuardianManage = () => {
               {filteredRelations.map(relation => {
                 const statusInfo = mapRelationStatus(relation);
                 const isRequested = relation.status === 'REQUESTED';
-                const initiatedByMe =
-                  relation.initiator !== relation.relationType; // 상대 타입과 다르면 내가 보낸 요청
-
-                return isRequested && !initiatedByMe ? (
+                // isInitiator가 false면 수락/거절 버튼, true면 요청됨/해제 버튼
+                return isRequested && !relation.isInitiator ? (
                   <Card
                     key={(relation as any).relationId}
                     style={{ position: 'relative' }}
@@ -344,7 +342,7 @@ const PatientGuardianManage = () => {
                               해제
                             </ActionBtn>
                           )}
-                          {isRequested && initiatedByMe && (
+                          {isRequested && relation.isInitiator && (
                             <ActionBtn
                               onClick={() =>
                                 setConfirmModal({
@@ -358,7 +356,7 @@ const PatientGuardianManage = () => {
                           )}
                           {(relation.status === 'REJECTED' ||
                             relation.status === 'DISCONNECTED') &&
-                            initiatedByMe && (
+                            relation.isInitiator && (
                               <ActionBtn
                                 onClick={() =>
                                   setConfirmModal({

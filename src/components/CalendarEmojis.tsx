@@ -146,7 +146,8 @@ const CalendarContainer = styled.div`
   background: #f8f6ff;
   border-radius: 16px;
   width: 100%;
-  max-width: 420px;
+  max-width: 100%;
+  box-sizing: border-box;
 `;
 
 const WeekRow = styled.div`

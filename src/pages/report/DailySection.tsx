@@ -37,11 +37,25 @@ const DailySection = () => {
         const query = new URLSearchParams(location.search);
         const overrideUserId = query.get('userId');
         const me = await getUserProfile();
-        const targetUserId = overrideUserId || me.patientCode || me.userId;
+        const targetUserId = overrideUserId || me.userId;
         
         // 일간 분석 데이터 가져오기
         const dayData = await getDayAnalysis(selectedDate, targetUserId);
-        setAnalysis(dayData);
+        if (!dayData || !dayData.hasData) {
+          console.log('📅 [일간 분석] 데이터 없음 - 빈 상태로 설정');
+          setAnalysis({
+            userId: targetUserId,
+            analysisDate: selectedDate,
+            hasData: false,
+            happyScore: 0,
+            sadScore: 0,
+            angryScore: 0,
+            surprisedScore: 0,
+            boredScore: 0
+          });
+        } else {
+          setAnalysis(dayData);
+        }
         
         // 월간 감정 데이터 가져오기 (캘린더용)
         const monthData = await getMonthlyEmotionData(selectedDate, targetUserId);
@@ -145,9 +159,11 @@ const DailyContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 100%;
-  max-width: 420px;
+  width: 95%;
+  max-width: 100%;
   margin: 0 auto;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
 `;
 
 const Section = styled.div`
