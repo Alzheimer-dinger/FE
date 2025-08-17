@@ -129,7 +129,9 @@ const Report = () => {
                     navigate(`/report?userId=${encodeURIComponent(r.userId)}`);
                   }}
                 >
-                  <Avatar>{r.relationType === 'GUARDIAN' ? '🛡️' : '🧑‍⚕️'}</Avatar>
+                  <Avatar $img={r.imageUrl}>
+                    {!r.imageUrl && (r.relationType === 'GUARDIAN' ? '🛡️' : '🧑‍⚕️')}
+                  </Avatar>
                   <NameText>{r.name}</NameText>
                 </ProfileRow>
               ))}

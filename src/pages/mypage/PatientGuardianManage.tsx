@@ -264,7 +264,25 @@ const PatientGuardianManage = () => {
                   >
                     <NBadge>N</NBadge>
                     <CardLeft>
-                      <CharImg>🐥</CharImg>
+                      <CharImg>
+                        {relation.imageUrl ? (
+                          <img
+                            src={relation.imageUrl}
+                            alt={relation.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                            }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling!.textContent = '🐥';
+                            }}
+                          />
+                        ) : null}
+                        <span style={{ fontSize: relation.imageUrl ? '0' : '2.2rem' }}>🐥</span>
+                      </CharImg>
                     </CardLeft>
                     <CardBody>
                       <NameRow>
@@ -303,7 +321,25 @@ const PatientGuardianManage = () => {
                 ) : (
                   <Card key={(relation as any).relationId}>
                     <CardLeft>
-                      <CharImg>🐥</CharImg>
+                      <CharImg>
+                        {relation.imageUrl ? (
+                          <img
+                            src={relation.imageUrl}
+                            alt={relation.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                            }}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling!.textContent = '🐥';
+                            }}
+                          />
+                        ) : null}
+                        <span style={{ fontSize: relation.imageUrl ? '0' : '2.2rem' }}>🐥</span>
+                      </CharImg>
                     </CardLeft>
                     <CardBody>
                       <NameRow>
