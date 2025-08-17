@@ -193,9 +193,9 @@ const PatientGuardianManage = () => {
       데이터_타입: typeof patientCode,
       길이: patientCode?.length,
       비어있는지: !patientCode?.trim(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-    
+
     try {
       console.log('[Relation][SEND][REQUEST] /api/relations/send', {
         patientCode,

@@ -78,7 +78,10 @@ const Report = () => {
   return (
     <Container>
       <DefaultHeader showIcon={false} />
-      <ContentContainer navMargin={true} style={{ width: '100%', padding: '0.5rem 1rem' }}>
+      <ContentContainer
+        navMargin={true}
+        style={{ width: '100%', padding: '0.5rem 1rem' }}
+      >
         {/* Tab Menu + Settings */}
         <TopBar>
           <TabMenu
@@ -117,17 +120,13 @@ const Report = () => {
               <NameText>{me?.name ?? '나'}</NameText>
             </ProfileRow>
             {relations
-              .filter(
-                r => r.status === 'ACCEPTED',
-              )
+              .filter(r => r.status === 'ACCEPTED')
               .map(r => (
                 <ProfileRow
                   key={r.relationId}
                   onClick={() => {
                     setShowConnections(false);
-                    navigate(
-                      `/report?userId=${encodeURIComponent(r.userId)}`,
-                    );
+                    navigate(`/report?userId=${encodeURIComponent(r.userId)}`);
                   }}
                 >
                   <Avatar>{r.relationType === 'GUARDIAN' ? '🛡️' : '🧑‍⚕️'}</Avatar>

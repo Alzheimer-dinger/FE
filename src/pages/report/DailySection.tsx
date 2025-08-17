@@ -38,7 +38,7 @@ const DailySection = () => {
         const overrideUserId = query.get('userId');
         const me = await getUserProfile();
         const targetUserId = overrideUserId || me.userId;
-        
+
         // 일간 분석 데이터 가져오기
         const dayData = await getDayAnalysis(selectedDate, targetUserId);
         if (!dayData || !dayData.hasData) {
@@ -51,16 +51,19 @@ const DailySection = () => {
             sadScore: 0,
             angryScore: 0,
             surprisedScore: 0,
-            boredScore: 0
+            boredScore: 0,
           });
         } else {
           setAnalysis(dayData);
         }
-        
+
         // 월간 감정 데이터 가져오기 (캘린더용)
-        const monthData = await getMonthlyEmotionData(selectedDate, targetUserId);
+        const monthData = await getMonthlyEmotionData(
+          selectedDate,
+          targetUserId,
+        );
         setMonthlyData(monthData?.monthlyEmotionData || []);
-        
+
         const d = new Date(selectedDate);
         setYear(d.getFullYear());
         setMonth(d.getMonth());

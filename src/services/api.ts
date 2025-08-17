@@ -189,24 +189,25 @@ export const getMonthlyEmotionData = async (
     params: { month, userId },
     baseURL: apiClient.defaults.baseURL,
   });
-  
+
   try {
     const response = await apiClient.get('/api/analysis/emotion/monthly', {
       params: { month, userId },
     });
-    
+
     console.log('📅 [월간 감정] API 응답 성공', {
       status: response.status,
       statusText: response.statusText,
       dataKeys: Object.keys(response.data || {}),
       responseData: response.data,
     });
-    
+
     const payload = response.data as any;
-    const result = payload && payload.result
-      ? (payload.result as MonthlyEmotionResponse)
-      : (payload as MonthlyEmotionResponse);
-      
+    const result =
+      payload && payload.result
+        ? (payload.result as MonthlyEmotionResponse)
+        : (payload as MonthlyEmotionResponse);
+
     console.log('📅 [월간 감정] 최종 파싱 결과', result);
     return result;
   } catch (error: any) {
@@ -221,7 +222,7 @@ export const getMonthlyEmotionData = async (
         params: error?.config?.params,
       },
     });
-    
+
     if (error?.response?.status === 400) {
       return null; // 잘못된 날짜 형식
     }
@@ -309,7 +310,7 @@ export interface Relation {
   relationType: 'GUARDIAN' | 'PATIENT';
   createdAt: string;
   status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'DISCONNECTED';
-  isInitiator: boolean; 
+  isInitiator: boolean;
 }
 
 // 관계 요청 응답을 위한 타입 (relationId 포함)
@@ -362,25 +363,27 @@ export const sendRelationRequest = async (
     method: 'POST',
     body: { patientCode },
     baseURL: apiClient.defaults.baseURL,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
-  
+
   try {
-    const response = await apiClient.post('/api/relations/send', { patientCode });
-    
+    const response = await apiClient.post('/api/relations/send', {
+      patientCode,
+    });
+
     console.log('🔗 [관계 추가] API 응답 성공', {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
-      responseData: response.data
+      responseData: response.data,
     });
-    
+
     const raw = response.data as any;
     const envelope: ApiEnvelope<string> =
       raw && typeof raw === 'object' && ('result' in raw || 'message' in raw)
         ? (raw as ApiEnvelope<string>)
         : { result: raw };
-        
+
     console.log('🔗 [관계 추가] 최종 파싱 결과', envelope);
     return envelope;
   } catch (error: any) {
