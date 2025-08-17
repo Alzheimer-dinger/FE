@@ -148,7 +148,7 @@ const TotalSection = () => {
       if (!targetUserId) {
         try {
           const profile = await getUserProfile();
-          targetUserId = profile.patientCode || profile.userId;
+          targetUserId = profile.userId;
         } catch {
           setTimeline([]);
           setError('사용자 정보를 가져올 수 없습니다');
@@ -164,9 +164,11 @@ const TotalSection = () => {
 
       const res = await getPeriodAnalysis(s, e, targetUserId);
       if (!res) {
+        console.log('📊 [감정변화 그래프] 데이터 없음 - 빈 상태로 설정');
         setTimeline([]);
-        setTotalParticipate(null);
-        setAverageCallTime(null);
+        setTotalParticipate(0);
+        setAverageCallTime('0분');
+        setError(null); // 에러가 아닌 정상적인 빈 상태
         return;
       }
       console.log('📊 [감정변화 그래프] timeline 데이터 설정:', {
@@ -216,9 +218,16 @@ const TotalSection = () => {
       console.log('  report:', report?.report);
       console.log('📋 [보고서] 전체 객체:', report);
       
-      setLatestReport(report);
+      // 404나 null인 경우에도 빈 상태로 처리
+      if (!report) {
+        console.log('📋 [보고서] 보고서 없음 - 빈 상태 메시지 표시');
+        setLatestReport(null);
+      } else {
+        setLatestReport(report);
+      }
     } catch (err: any) {
       console.error('종합보고서 로딩 실패:', err);
+      // 에러 발생 시에도 null로 설정하여 빈 상태 메시지 표시
       setLatestReport(null);
     } finally {
       setReportLoading(false);
@@ -231,16 +240,13 @@ const TotalSection = () => {
       if (overrideUserId) {
         try {
           const profile = await getUserProfile();
-          if (
-            profile.patientCode === overrideUserId ||
-            profile.userId === overrideUserId
-          ) {
+          if (profile.userId === overrideUserId) {
             setPatientName(profile.name);
           } else {
             // 연결된 환자 정보 가져오기
             const relations = await getRelations();
             const patient = relations.find(
-              (r: any) => r.patientCode === overrideUserId,
+              (r: any) => r.userId === overrideUserId,
             );
             if (patient) {
               setPatientName(patient.name);
@@ -266,7 +272,7 @@ const TotalSection = () => {
         if (!targetUserId) {
           try {
             const profile = await getUserProfile();
-            targetUserId = profile.patientCode || profile.userId;
+            targetUserId = profile.userId;
           } catch (err) {
             console.error('사용자 정보를 가져올 수 없습니다:', err);
           }
@@ -279,7 +285,7 @@ const TotalSection = () => {
 
     loadPatientInfo();
     loadReport();
-  }, [overrideUserId, endDate, userName]);
+  }, [overrideUserId, endDate, userName]); // overrideUserId 변경 시 자동 갱신
 
   // 초기 날짜 설정을 위한 useEffect
   useEffect(() => {
@@ -299,24 +305,25 @@ const TotalSection = () => {
     }
   }, []); // 빈 dependency로 마운트 시에만 실행
 
-  // 초기 기간 데이터 로딩을 위한 별도 useEffect
+    // 기간 데이터 로딩 및 userId 변경 시 갱신을 위한 useEffect
   useEffect(() => {
-    console.log('📊 [TotalSection] 초기 기간 데이터 로딩 useEffect', {
+    console.log('📊 [TotalSection] 기간 데이터 로딩 useEffect', {
       selectedPeriod,
       startDate,
       endDate,
+      overrideUserId,
       hasStartDate: !!startDate,
       hasEndDate: !!endDate
     });
 
-    // 컴포넌트 마운트 후 기본값("최근 1주일")으로 데이터 로딩
-    if (selectedPeriod === '최근 1주일' && startDate && endDate) {
-      console.log('🚀 [TotalSection] 초기 기간 데이터 로딩 시작:', { startDate, endDate });
+    // 기본값("최근 1주일")이거나 날짜가 설정되어 있으면 데이터 로딩
+    if (startDate && endDate) {
+      console.log('🚀 [TotalSection] 기간 데이터 로딩 시작:', { startDate, endDate, userId: overrideUserId });
       fetchPeriod(startDate, endDate);
     } else {
-      console.log('⚠️ [TotalSection] 초기 기간 데이터 로딩 조건 불충족');
+      console.log('⚠️ [TotalSection] 기간 데이터 로딩 조건 불충족');
     }
-  }, [selectedPeriod, startDate, endDate]);
+  }, [selectedPeriod, startDate, endDate, overrideUserId]); // overrideUserId 추가
 
   const handleConfirm = () => {
     setShowCustom(false);
@@ -466,9 +473,11 @@ const TotalContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  width: 100%;
-  max-width: 480px;
+  width: 95%;
+  max-width: 100%;
   margin: 0 auto;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
 `;
 
 const SectionTitle = styled.h2`
