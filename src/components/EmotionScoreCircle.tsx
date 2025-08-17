@@ -39,6 +39,7 @@ const EmotionScoreCircle = ({ score, centerEmoji = '😊' }: Props) => {
           r={normalizedRadius}
           cx={radius}
           cy={radius}
+          transform={`rotate(-90 ${radius} ${radius})`}
         />
         <text
           x="50%"

@@ -57,8 +57,8 @@ const Report = () => {
       let userId: string | undefined = undefined;
       try {
         const profile = await getUserProfile();
-        // 서버 요구사항: 내 patientId(=patientCode)를 userId 파라미터로 전송
-        userId = profile.patientCode || profile.userId;
+        // 서버 요구사항: 내 userId를 userId 파라미터로 전송
+        userId = profile.userId;
       } catch {}
       if (!hasDate) params.set('date', date);
       if (!hasUser && userId) params.set('userId', userId);
@@ -78,7 +78,7 @@ const Report = () => {
   return (
     <Container>
       <DefaultHeader showIcon={false} />
-      <ContentContainer navMargin={true}>
+      <ContentContainer navMargin={true} style={{ width: '100%', padding: '0.5rem 1rem' }}>
         {/* Tab Menu + Settings */}
         <TopBar>
           <TabMenu
@@ -118,7 +118,7 @@ const Report = () => {
             </ProfileRow>
             {relations
               .filter(
-                r => r.status !== 'DISCONNECTED' && r.status !== 'REQUESTED',
+                r => r.status === 'ACCEPTED',
               )
               .map(r => (
                 <ProfileRow
@@ -126,7 +126,7 @@ const Report = () => {
                   onClick={() => {
                     setShowConnections(false);
                     navigate(
-                      `/report?userId=${encodeURIComponent(r.patientCode)}`,
+                      `/report?userId=${encodeURIComponent(r.userId)}`,
                     );
                   }}
                 >
@@ -148,6 +148,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  align-items: center;
 `;
 
 const TopBar = styled.div`
